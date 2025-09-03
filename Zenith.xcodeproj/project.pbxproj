@@ -32,8 +32,8 @@
 		B4266B9C2E673F7600D5E74C = {
 			isa = PBXGroup;
 			children = (
-				B4266BA72E673F7600D5E74C /* Zenith */,
 				B4266BA62E673F7600D5E74C /* Products */,
+				B4266BA72E673F7600D5E74C /* Zenith */,
 			);
 			sourceTree = "<group>";
 		};
