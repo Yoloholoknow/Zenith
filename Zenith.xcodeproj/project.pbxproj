@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		B4266BA52E673F7600D5E74C /* Zenith.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zenith.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B46615E32E67C30C005D6610 /* Zenith.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zenith.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,17 +32,9 @@
 		B4266B9C2E673F7600D5E74C = {
 			isa = PBXGroup;
 			children = (
-				B4266BA62E673F7600D5E74C /* Products */,
 				B4266BA72E673F7600D5E74C /* Zenith */,
+				B46615E32E67C30C005D6610 /* Zenith.app */,
 			);
-			sourceTree = "<group>";
-		};
-		B4266BA62E673F7600D5E74C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				B4266BA52E673F7600D5E74C /* Zenith.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -67,7 +59,7 @@
 			packageProductDependencies = (
 			);
 			productName = Zenith;
-			productReference = B4266BA52E673F7600D5E74C /* Zenith.app */;
+			productReference = B46615E32E67C30C005D6610 /* Zenith.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -95,7 +87,7 @@
 			mainGroup = B4266B9C2E673F7600D5E74C;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = B4266BA62E673F7600D5E74C /* Products */;
+			productRefGroup = B4266B9C2E673F7600D5E74C;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
