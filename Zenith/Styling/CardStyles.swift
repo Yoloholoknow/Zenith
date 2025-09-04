@@ -13,7 +13,7 @@ extension View {
             .padding(16)
             .background(ThemeColors.cardBackground)
             .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
     }
     
     func primaryCard() -> some View {
@@ -48,7 +48,7 @@ extension View {
             .padding(20)
             .background(ThemeColors.cardBackground)
             .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
         
     }
 }

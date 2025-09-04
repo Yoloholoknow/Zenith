@@ -12,26 +12,26 @@ extension Text {
         self
             .font(.largeTitle)
             .fontWeight(.bold)
-            .foregroundStyle(ThemeColors.textPrimary)
+            .foregroundStyle(ThemeColors.textLight)
     }
     
     func cardTitle() -> some View {
         self
             .font(.headline)
             .fontWeight(.semibold)
-            .foregroundStyle(ThemeColors.textPrimary)
+            .foregroundStyle(ThemeColors.textLight)
     }
     
     func bodyText() -> some View {
         self
             .font(. body)
-            .foregroundStyle(ThemeColors.textSecondary)
+            .foregroundStyle(ThemeColors.textLight)
     }
     
     func captionText() -> some View {
         self
             .font(.caption)
-            .foregroundStyle(ThemeColors.textSecondary)
+            .foregroundStyle(ThemeColors.textLight)
     }
     
     func achievementText() -> some View {
