@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var streakManager = StreakManager()
-    @StateObject private var pointsManager = PointsManager()
+    @EnvironmentObject var pointsManager: PointsManager
     
     var body: some View {
         ZStack {
@@ -113,7 +113,9 @@ struct DashboardView: View {
                     VStack(spacing: 24) {
                         // Main Streak Display
                         Button(action: {
-                            streakManager.markTodayCompleted()
+                            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                streakManager.markTodayCompleted()
+                            }
                         }) {
                             VStack(spacing: 16) {
                                 Text("🔥")
@@ -227,18 +229,26 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal)
                 }
-                .background(ThemeColors.backgroundDark)
             }
+            .background(ThemeColors.backgroundDark.ignoresSafeArea())
             
             // Celebration overlay
-                        if pointsManager.showCelebration {
-                            CelebrationOverlay(
-                                pointsAwarded: pointsManager.lastAwardedPoints,
-                                isLevelUp: pointsManager.currentLevel > 1 && pointsManager.levelProgress < 0.5
-                            )
-                            .transition(.opacity)
-                            .zIndex(1)
-                        }
+            if pointsManager.showCelebration {
+                CelebrationOverlay(
+                    pointsAwarded: pointsManager.lastAwardedPoints,
+                    isLevelUp: pointsManager.currentLevel > 1 && pointsManager.levelProgress < 0.5
+                )
+                .transition(.opacity)
+                .zIndex(1)
+            }
+        }
+    }
+}
+
+#Preview {
+    DashboardView()
+        .environmentObject(PointsManager())
+}
             
             
 //                    // Sample Achievement Card
@@ -298,10 +308,11 @@ struct DashboardView: View {
 //                }
 //                .padding(.horizontal, 16)
 //            }
-        }
-    }
-}
-
-#Preview {
-    DashboardView()
-}
+//        }
+//    }
+//}
+//
+//#Preview {
+//    DashboardView()
+//        .environmentObject(PointsManager())
+//}

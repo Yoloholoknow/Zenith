@@ -26,7 +26,7 @@ struct CelebrationOverlay: View {
                         Text("🎉")
                             .font(.system(size: 80))
                             .scaleEffect(animate ? 1.2 : 0.8)
-                            .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: animate)
+                            .animation(.easeInOut(duration: 0.3).repeatForever(autoreverses: true), value: animate)
                         
                         Text("LEVEL UP!")
                             .font(.largeTitle)
@@ -41,7 +41,7 @@ struct CelebrationOverlay: View {
                         Text("⭐")
                             .font(.system(size: 60))
                             .scaleEffect(animate ? 1.3 : 1.0)
-                            .animation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true), value: animate)
+                            .animation(.easeInOut(duration: 0.2).repeatForever(autoreverses: true), value: animate)
                         
                         Text("+\(pointsAwarded)")
                             .font(.system(size: 48, weight: .bold))
@@ -122,5 +122,5 @@ struct Particle: Identifiable {
 }
 
 //#Preview {
-//    CelebrationOverlay()
+//    CelebrationOverlay(pointsAwarded: 50, isLevelUp: true)
 //}

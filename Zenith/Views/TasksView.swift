@@ -14,13 +14,15 @@ struct TasksView: View {
     @EnvironmentObject var pointsManager: PointsManager
     
     private func toggleTaskCompletion(_ task: Task) {
-        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[index].isCompleted.toggle()
-            if tasks[index].isCompleted {
-                tasks[index].markAsCompleted()
-                pointsManager.awardPointsForTask(tasks[index])
-            } else {
-                tasks[index].markAsIncomplete()
+        withAnimation(.easeIn(duration: 0.3)) {
+            if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+                tasks[index].isCompleted.toggle()
+                if tasks[index].isCompleted {
+                    tasks[index].markAsCompleted()
+                    pointsManager.awardPointsForTask(tasks[index])
+                } else {
+                    tasks[index].markAsIncomplete()
+                }
             }
         }
     }
@@ -43,95 +45,108 @@ struct TasksView: View {
     }
     
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(tasks.sorted(by: { !$0.isCompleted && $1.isCompleted })) { task in
-                    HStack(spacing: 12) {
-                        Button(action: {
-                            toggleTaskCompletion(task)
-                        }) {
-                            Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(task.isCompleted ? ThemeColors.successGreen : .gray)
-                                .font(.title2)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text(task.title)
-                                    .font(.headline)
-                                    .strikethrough(task.isCompleted)
-                                    .foregroundColor(task.isCompleted ? .gray : ThemeColors.textLight)
-                                
-                                Spacer()
-                                
-                                Text(task.priority.rawValue)
-                                    .font(.caption)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 2)
-                                    .background(priorityColor(for: task.priority))
-                                    .cornerRadius(8)
-                                    .foregroundColor(.white)
+        ZStack {
+            NavigationView {
+                List {
+                    ForEach(tasks.sorted(by: { !$0.isCompleted && $1.isCompleted })) { task in
+                        HStack(spacing: 12) {
+                            Button(action: {
+                                toggleTaskCompletion(task)
+                            }) {
+                                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(task.isCompleted ? ThemeColors.successGreen : .gray)
+                                    .font(.title2)
                             }
                             
-                            if !task.description.isEmpty {
-                                Text(task.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(2)
-                            }
-                            
-                            HStack {
-                                Text(task.category.rawValue)
-                                    .font(.caption)
-                                    .foregroundColor(ThemeColors.secondaryPurple)
-                                
-                                Spacer()
-                                
-                                if task.isCompleted {
-                                    Text("+\(task.pointsEarned) points")
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text(task.title)
+                                        .font(.headline)
+                                        .strikethrough(task.isCompleted)
+                                        .foregroundColor(task.isCompleted ? .gray : ThemeColors.textLight)
+                                    
+                                    Spacer()
+                                    
+                                    Text(task.priority.rawValue)
                                         .font(.caption)
-                                        .foregroundColor(ThemeColors.successGreen)
-                                        .fontWeight(.medium)
-                                } else {
-                                    Text("\(task.potentialPoints) points")
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .background(priorityColor(for: task.priority))
+                                        .cornerRadius(8)
+                                        .foregroundColor(.white)
+                                }
+                                
+                                if !task.description.isEmpty {
+                                    Text(task.description)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(2)
+                                }
+                                
+                                HStack {
+                                    Text(task.category.rawValue)
                                         .font(.caption)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(ThemeColors.secondaryPurple)
+                                    
+                                    Spacer()
+                                    
+                                    if task.isCompleted {
+                                        Text("+\(task.pointsEarned) points")
+                                            .font(.caption)
+                                            .foregroundColor(ThemeColors.successGreen)
+                                            .fontWeight(.medium)
+                                    } else {
+                                        Text("\(task.potentialPoints) points")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
                                 }
                             }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                self.taskToEdit = task
+                                self.showingTaskDetail = true
+                            }
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            self.taskToEdit = task
-                            self.showingTaskDetail = true
-                        }
+                        .padding(.vertical, 4)
+                        .listRowBackground(ThemeColors.cardBackground)
                     }
-                    .padding(.vertical, 4)
-                    .listRowBackground(ThemeColors.cardBackground)
+                    .onDelete(perform: deleteTask)
                 }
-                .onDelete(perform: deleteTask)
+                .background(ThemeColors.backgroundDark.ignoresSafeArea())
+                .scrollContentBackground(.hidden)
+                .navigationTitle("My Tasks")
             }
-            .background(ThemeColors.backgroundDark)
-            .scrollContentBackground(.hidden)
-            .navigationTitle("My Tasks")
-        }
-        .overlay(
-            Button(action: {
-                self.taskToEdit = nil
-                self.showingTaskDetail = true
-            }) {
-                Image(systemName: "plus")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .frame(width: 56, height: 56)
-                    .background(Color.blue)
-                    .clipShape(Circle())
-                    .shadow(radius: 4)
+            .background(ThemeColors.backgroundDark.ignoresSafeArea())
+            .overlay(
+                Button(action: {
+                    self.taskToEdit = nil
+                    self.showingTaskDetail = true
+                }) {
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
+                        .background(Color.blue)
+                        .clipShape(Circle())
+                        .shadow(radius: 4)
+                }
+                .padding()
+                , alignment: .bottomTrailing
+            )
+            .sheet(isPresented: $showingTaskDetail) {
+                TaskDetailView(tasks: $tasks, taskToEdit: $taskToEdit)
             }
-            .padding()
-            , alignment: .bottomTrailing
-        )
-        .sheet(isPresented: $showingTaskDetail) {
-            TaskDetailView(tasks: $tasks, taskToEdit: $taskToEdit)
+            
+            // Celebration overlay
+            if pointsManager.showCelebration {
+                CelebrationOverlay(
+                    pointsAwarded: pointsManager.lastAwardedPoints,
+                    isLevelUp: pointsManager.currentLevel > 1 && pointsManager.levelProgress < 0.5
+                )
+                .transition(.opacity)
+                .zIndex(1)
+            }
         }
     }
 }
@@ -218,4 +233,5 @@ struct TaskDetailView: View {
 
 #Preview {
     TasksView()
+        .environmentObject(PointsManager())
 }

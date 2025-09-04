@@ -81,7 +81,7 @@ class PointsManager: ObservableObject {
         showCelebration = true
         
         // Auto-hide after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.showCelebration = false
         }
     }
@@ -91,7 +91,7 @@ class PointsManager: ObservableObject {
         showCelebration = true
         
         // Auto-hide after 3 seconds for level up
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             self.showCelebration = false
         }
     }

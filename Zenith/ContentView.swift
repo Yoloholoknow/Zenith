@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var pointsManager = PointsManager()
+    
     var body: some View {
         TabView {
             DashboardView()
@@ -25,9 +27,14 @@ struct ContentView: View {
                     Label("Stats", systemImage: "chart.bar")
                 }
         }
-    }
+        // These two lines set the background color of the tab bar
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackground(ThemeColors.cardBackground, for: .tabBar)
+        // This line sets the color for the selected icon
+        .tint(ThemeColors.secondaryPurple)
+        .environmentObject(pointsManager)    }
 }
 
-//#Preview {
-//    ContentView()
-//}
+#Preview {
+    ContentView()
+}
