@@ -9,12 +9,9 @@ import SwiftUI
 
 @main
 struct ZenithApp: App {
-    @StateObject private var pointsManager = PointsManager()
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(pointsManager)
         }
     }
 }
