@@ -11,12 +11,14 @@ struct TasksView: View {
     @State private var showingTaskDetail = false
     @State private var tasks: [Task] = Task.sampleTasks()
     @State private var taskToEdit: Task? = nil
+    @EnvironmentObject var pointsManager: PointsManager
     
     private func toggleTaskCompletion(_ task: Task) {
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index].isCompleted.toggle()
             if tasks[index].isCompleted {
                 tasks[index].markAsCompleted()
+                pointsManager.awardPointsForTask(tasks[index])
             } else {
                 tasks[index].markAsIncomplete()
             }

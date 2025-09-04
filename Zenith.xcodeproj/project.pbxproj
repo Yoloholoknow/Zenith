@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		B4266BA72E673F7600D5E74C /* Zenith */ = {
+		B4DEFFDD2E69C98C0085F9C9 /* Zenith */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Zenith;
 			sourceTree = "<group>";
@@ -32,8 +32,8 @@
 		B4266B9C2E673F7600D5E74C = {
 			isa = PBXGroup;
 			children = (
-				B4266BA72E673F7600D5E74C /* Zenith */,
 				B46615E32E67C30C005D6610 /* Zenith.app */,
+				B4DEFFDD2E69C98C0085F9C9 /* Zenith */,
 			);
 			sourceTree = "<group>";
 		};
@@ -53,7 +53,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				B4266BA72E673F7600D5E74C /* Zenith */,
+				B4DEFFDD2E69C98C0085F9C9 /* Zenith */,
 			);
 			name = Zenith;
 			packageProductDependencies = (

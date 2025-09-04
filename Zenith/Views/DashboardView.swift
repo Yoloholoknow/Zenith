@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var streakManager = StreakManager()
+    @StateObject private var pointsManager = PointsManager()
     
     var body: some View {
         ZStack {
@@ -45,6 +46,68 @@ struct DashboardView: View {
                         }
                         .padding(.top)
                     }
+                    
+                    // Points & Level Card
+                    VStack(spacing: 12) {
+                        HStack {
+                            Text("⭐")
+                                .font(.title)
+                            
+                            Text("Points & Level")
+                                .cardTitle()
+                            
+                            Spacer()
+                        }
+                        
+                        HStack {
+                            // Total Points
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(pointsManager.totalPoints)")
+                                    .font(.system(size: 32, weight: .bold))
+                                    .foregroundColor(ThemeColors.primaryBlue)
+                                
+                                Text("Total Points")
+                                    .captionText()
+                            }
+                            
+                            Spacer()
+                            
+                            // Level & Progress
+                            VStack(alignment: .trailing, spacing: 8) {
+                                HStack(spacing: 4) {
+                                    Text("Level")
+                                        .captionText()
+                                    Text("\(pointsManager.currentLevel)")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(ThemeColors.streakGold)
+                                }
+                                
+                                // Progress Bar
+                                VStack(alignment: .trailing, spacing: 4) {
+                                    ProgressView(value: pointsManager.levelProgress)
+                                        .progressViewStyle(LinearProgressViewStyle(tint: ThemeColors.successGreen))
+                                        .frame(width: 100)
+                                    
+                                    Text("\(Int(pointsManager.levelProgress * 100))% to next level")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        
+                        // Daily Points
+                        HStack {
+                            Text("Today: +\(pointsManager.dailyPoints) points")
+                                .successText()
+                            
+                            Spacer()
+                            
+                            Text("Next level: \(pointsManager.pointsForNextLevel - Int(pointsManager.levelProgress * Double(pointsManager.pointsForNextLevel))) points")
+                                .captionText()
+                        }
+                    }
+                    .primaryCard()
                     
                     // MARK: - Streak Display
                     VStack(spacing: 24) {
@@ -141,10 +204,19 @@ struct DashboardView: View {
                                     .multilineTextAlignment(.center)
                             }
                             
-                            // MARK: - Streak Reseting Testing
+                            // MARK: - Testing
                             VStack(spacing: 8) {
-                                Button("Reset Streak") {
+                                Button("Reset Streak (Test)") {
                                     streakManager.resetStreak()
+                                }
+                                .buttonStyle(SecondaryButtonStyle())
+                                Button("Award Bonus Points (+50)") {
+                                    pointsManager.awardBonusPoints(50, reason: "Daily bonus")
+                                }
+                                .buttonStyle(PrimaryButtonStyle())
+
+                                Button("Reset Points (Test)") {
+                                    pointsManager.resetPoints()
                                 }
                                 .buttonStyle(SecondaryButtonStyle())
                             }
@@ -157,6 +229,16 @@ struct DashboardView: View {
                 }
                 .background(ThemeColors.backgroundDark)
             }
+            
+            // Celebration overlay
+                        if pointsManager.showCelebration {
+                            CelebrationOverlay(
+                                pointsAwarded: pointsManager.lastAwardedPoints,
+                                isLevelUp: pointsManager.currentLevel > 1 && pointsManager.levelProgress < 0.5
+                            )
+                            .transition(.opacity)
+                            .zIndex(1)
+                        }
             
             
 //                    // Sample Achievement Card
