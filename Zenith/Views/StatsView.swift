@@ -6,11 +6,11 @@
 //
 
 import SwiftUI
+import Combine
 
 struct StatsView: View {
-    @State private var progress: Double = 0.85 // Example value
-    @State private var streakCount = 5 // Example value
     @EnvironmentObject var pointsManager: PointsManager
+    @EnvironmentObject var streakManager: StreakManager
     
     var body: some View {
         ZStack {
@@ -29,7 +29,7 @@ struct StatsView: View {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 40))
                             .foregroundStyle(ThemeColors.warningOrange)
-                        Text("\(streakCount) Day Streak")
+                        Text("\(streakManager.currentStreakCount) Day Streak")
                             .font(.headline)
                             .fontWeight(.semibold)
                             .foregroundStyle(ThemeColors.textLight)
@@ -43,7 +43,7 @@ struct StatsView: View {
                         Text("Weekly Progress")
                             .cardTitle()
 
-                        ProgressRingView(progress: progress, ringColor: ThemeColors.successGreen, textColor: ThemeColors.textLight)
+                        ProgressRingView(progress: pointsManager.levelProgress, ringColor: ThemeColors.successGreen, textColor: ThemeColors.textLight)
                             .frame(width: 150, height: 150)
                             .padding(.vertical, 10)
 
@@ -228,6 +228,16 @@ struct StatsView: View {
 
             }
             .background(ThemeColors.backgroundDark.ignoresSafeArea())
+
+            // Celebration overlay
+            if pointsManager.showCelebration {
+                CelebrationOverlay(
+                    pointsAwarded: pointsManager.lastAwardedPoints,
+                    isLevelUp: pointsManager.isLevelUp
+                )
+                .transition(.opacity)
+                .zIndex(1)
+            }
         }
     }
 }

@@ -12,7 +12,8 @@ class PointsManager: ObservableObject {
     @Published var userPoints = UserPoints()
     @Published var showCelebration = false
     @Published var lastAwardedPoints = 0
-    
+    @Published var isLevelUp = false
+
     private let userDefaults = UserDefaults.standard
     private let pointsKey = "user_points_data"
     
@@ -50,12 +51,9 @@ class PointsManager: ObservableObject {
         userPoints.awardPoints(pointsAwarded, reason: "Completed: \(task.title)", taskId: task.id)
         lastAwardedPoints = pointsAwarded
         
-        // Check if level increased
-        if userPoints.level > oldLevel {
-            showLevelUpCelebration()
-        } else {
-            showPointsCelebration()
-        }
+        // Check if level increased and set the flag
+        self.isLevelUp = userPoints.level > oldLevel
+        triggerCelebration()
         
         savePoints()
     }
@@ -67,31 +65,19 @@ class PointsManager: ObservableObject {
         userPoints.awardPoints(points, reason: reason)
         lastAwardedPoints = points
         
-        if userPoints.level > oldLevel {
-            showLevelUpCelebration()
-        } else {
-            showPointsCelebration()
-        }
+        self.isLevelUp = userPoints.level > oldLevel
+        triggerCelebration()
         
         savePoints()
     }
     
-    // Show points celebration animation
-    private func showPointsCelebration() {
+    // Trigger celebration animation
+    private func triggerCelebration() {
         showCelebration = true
         
-        // Auto-hide after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.showCelebration = false
-        }
-    }
-    
-    // Show level up celebration
-    private func showLevelUpCelebration() {
-        showCelebration = true
-        
-        // Auto-hide after 3 seconds for level up
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        // Auto-hide after 2 or 3 seconds
+        let delay = isLevelUp ? 2.0 : 1.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             self.showCelebration = false
         }
     }

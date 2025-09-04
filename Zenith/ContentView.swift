@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var pointsManager = PointsManager()
+    @StateObject private var streakManager = StreakManager()
     
     var body: some View {
         TabView {
@@ -32,7 +33,9 @@ struct ContentView: View {
         .toolbarBackground(ThemeColors.cardBackground, for: .tabBar)
         // This line sets the color for the selected icon
         .tint(ThemeColors.secondaryPurple)
-        .environmentObject(pointsManager)    }
+        .environmentObject(pointsManager)
+        .environmentObject(streakManager)
+    }
 }
 
 #Preview {

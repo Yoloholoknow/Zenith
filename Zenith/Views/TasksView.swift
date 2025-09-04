@@ -142,7 +142,7 @@ struct TasksView: View {
             if pointsManager.showCelebration {
                 CelebrationOverlay(
                     pointsAwarded: pointsManager.lastAwardedPoints,
-                    isLevelUp: pointsManager.currentLevel > 1 && pointsManager.levelProgress < 0.5
+                    isLevelUp: pointsManager.isLevelUp
                 )
                 .transition(.opacity)
                 .zIndex(1)
