@@ -10,6 +10,13 @@ import SwiftUI
 struct DashboardView: View {
     @StateObject private var streakManager = StreakManager()
     @EnvironmentObject var pointsManager: PointsManager
+    @StateObject private var dataManager = DataManager.shared
+    
+    private func formatLastSaveDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
     
     var body: some View {
         ZStack {
@@ -206,6 +213,57 @@ struct DashboardView: View {
                                     .multilineTextAlignment(.center)
                             }
                             
+                            // Data Sync Status Card
+                            VStack(spacing: 8) {
+                                HStack {
+                                    Image(systemName: dataManager.hasExistingData() ? "checkmark.circle.fill" : "exclamationmark.circle")
+                                        .foregroundColor(dataManager.hasExistingData() ? ThemeColors.successGreen : ThemeColors.warningOrange)
+                                        .font(.title3)
+                                    
+                                    Text("Data Status")
+                                        .cardTitle()
+                                    
+                                    Spacer()
+                                }
+                                
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(dataManager.hasExistingData() ? "✅ Data Saved" : "📝 No Data Yet")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(dataManager.hasExistingData() ? ThemeColors.successGreen : ThemeColors.textSecondary)
+                                        
+                                        if let lastSave = dataManager.getLastSaveDate() {
+                                            Text("Last saved: \(formatLastSaveDate(lastSave))")
+                                                .captionText()
+                                        } else {
+                                            Text("Complete tasks to save progress")
+                                                .captionText()
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button("Clear All") {
+                                        dataManager.clearAllData()
+                                        // Refresh managers
+                                        pointsManager.resetPoints()
+                                        streakManager.resetStreak()
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .stroke(Color.red, lineWidth: 1)
+                                    )
+                                }
+                            }
+                            .dashboardCard()
+                            
+                            Spacer(minLength: 20)
+                            
                             // MARK: - Testing
                             VStack(spacing: 8) {
                                 Button("Reset Streak (Test)") {
@@ -245,10 +303,10 @@ struct DashboardView: View {
     }
 }
 
-#Preview {
-    DashboardView()
-        .environmentObject(PointsManager())
-}
+//#Preview {
+//    DashboardView()
+//        .environmentObject(PointsManager())
+//}
             
             
 //                    // Sample Achievement Card

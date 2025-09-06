@@ -21,17 +21,19 @@ class StreakManager: ObservableObject {
     
     // Load streak data from UserDefaults
     private func loadStreak() {
-        if let data = userDefaults.data(forKey: streakKey),
-           let savedStreak = try? JSONDecoder().decode(Streak.self, from: data) {
-            streak = savedStreak
-        }
+        //        if let data = userDefaults.data(forKey: streakKey),
+        //           let savedStreak = try? JSONDecoder().decode(Streak.self, from: data) {
+        //            streak = savedStreak
+        //        }
+        streak = DataManager.shared.loadStreak()
     }
     
     // Save streak data to UserDefaults
     private func saveStreak() {
-        if let data = try? JSONEncoder().encode(streak) {
-            userDefaults.set(data, forKey: streakKey)
-        }
+        //        if let data = try? JSONEncoder().encode(streak) {
+        //            userDefaults.set(data, forKey: streakKey)
+        //        }
+        DataManager.shared.saveStreak(streak)
     }
     
     // Check if streak should be reset due to missed days
@@ -42,7 +44,16 @@ class StreakManager: ObservableObject {
     
     // Mark today as completed (call when user completes daily tasks)
     func markTodayCompleted() {
+        let previousStreak = streak.currentStreak
         streak.updateStreakForCompletion()
+        
+        // Log streak update
+        if streak.currentStreak > previousStreak {
+            print("🔥 Streak increased to \(streak.currentStreak) days!")
+        } else {
+            print("✅ Today already completed")
+        }
+        
         saveStreak()
     }
     
@@ -67,14 +78,35 @@ class StreakManager: ObservableObject {
             return "Start your streak today!"
         } else if streak.currentStreak == 1 {
             return "Great start! Keep it going tomorrow."
+        } else if streak.currentStreak >= 7 {
+            return "Incredible! You're on a week-long streak! 🔥"
+        } else if streak.currentStreak >= 3 {
+            return "Amazing momentum! You're building a solid habit! ⭐"
         } else {
-            return "Amazing! You're on fire! 🔥"
+            return "Great progress! Keep the momentum going! 💪"
         }
     }
     
     // Reset streak (for testing purposes)
     func resetStreak() {
+        print("🗑️ Resetting streak data")
         streak = Streak()
         saveStreak()
     }
+    
+    // Get days since last completion
+    var daysSinceLastCompletion: Int {
+        guard let lastDate = streak.lastCompletionDate else { return -1 }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let lastCompletionDay = calendar.startOfDay(for: lastDate)
+        return calendar.dateComponents([.day], from: lastCompletionDay, to: today).day ?? 0
+    }
+    
+    // Check if today is already completed
+    var isTodayCompleted: Bool {
+        guard let lastDate = streak.lastCompletionDate else { return false }
+        return Calendar.current.isDate(lastDate, inSameDayAs: Date())
+    }
+    
 }

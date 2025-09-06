@@ -12,6 +12,15 @@ struct TasksView: View {
     @State private var tasks: [Task] = Task.sampleTasks()
     @State private var taskToEdit: Task? = nil
     @EnvironmentObject var pointsManager: PointsManager
+    @StateObject private var dataManager = DataManager.shared
+    
+    private func loadTasksData() {
+        tasks = DataManager.shared.loadTasks()
+    }
+    
+    private func saveTasksData() {
+        DataManager.shared.saveTasks(tasks)
+    }
     
     private func toggleTaskCompletion(_ task: Task) {
         withAnimation(.easeIn(duration: 0.3)) {
@@ -23,12 +32,15 @@ struct TasksView: View {
                 } else {
                     tasks[index].markAsIncomplete()
                 }
+                
+                saveTasksData()
             }
         }
     }
     
     private func deleteTask(at offsets: IndexSet) {
         tasks.remove(atOffsets: offsets)
+        saveTasksData()
     }
     
     private func priorityColor(for priority: TaskPriority) -> Color {
@@ -135,7 +147,7 @@ struct TasksView: View {
                 , alignment: .bottomTrailing
             )
             .sheet(isPresented: $showingTaskDetail) {
-                TaskDetailView(tasks: $tasks, taskToEdit: $taskToEdit)
+                TaskDetailView(tasks: $tasks, taskToEdit: $taskToEdit, onTaskAdded: () -> Void )
             }
             
             // Celebration overlay
@@ -160,6 +172,8 @@ struct TaskDetailView: View {
     @State private var selectedPriority: TaskPriority = .medium
     
     @Environment(\.dismiss) var dismiss
+    
+    let onTaskAdded: () -> Void
     
     var isEditing: Bool {
         return taskToEdit != nil
@@ -221,6 +235,7 @@ struct TaskDetailView: View {
                                 priority: selectedPriority
                             )
                             tasks.append(newTask)
+                            onTaskAdded()
                         }
                         dismiss()
                     }
@@ -231,7 +246,7 @@ struct TaskDetailView: View {
     }
 }
 
-#Preview {
-    TasksView()
-        .environmentObject(PointsManager())
-}
+//#Preview {
+//    TasksView()
+//        .environmentObject(PointsManager())
+//}

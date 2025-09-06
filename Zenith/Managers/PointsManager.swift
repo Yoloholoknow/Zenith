@@ -24,17 +24,19 @@ class PointsManager: ObservableObject {
     
     // Load points data from UserDefaults
     private func loadPoints() {
-        if let data = userDefaults.data(forKey: pointsKey),
-           let savedPoints = try? JSONDecoder().decode(UserPoints.self, from: data) {
-            userPoints = savedPoints
-        }
+//        if let data = userDefaults.data(forKey: pointsKey),
+//           let savedPoints = try? JSONDecoder().decode(UserPoints.self, from: data) {
+//            userPoints = savedPoints
+//           }
+        userPoints = DataManager.shared.loadPoints()
     }
     
     // Save points data to UserDefaults
     private func savePoints() {
-        if let data = try? JSONEncoder().encode(userPoints) {
-            userDefaults.set(data, forKey: pointsKey)
-        }
+//        if let data = try? JSONEncoder().encode(userPoints) {
+//            userDefaults.set(data, forKey: pointsKey)
+//        }
+        DataManager.shared.savePoints(userPoints)
     }
     
     // Check if daily points should be reset
@@ -107,8 +109,9 @@ class PointsManager: ObservableObject {
         return userPoints.pointsForNextLevel
     }
     
-    // Reset all points (for testing)
+    // Reset points (for testing)
     func resetPoints() {
+        print("🗑️ Resetting points data")
         userPoints = UserPoints()
         savePoints()
     }
