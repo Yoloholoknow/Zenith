@@ -130,6 +130,9 @@ struct TasksView: View {
                 .scrollContentBackground(.hidden)
                 .navigationTitle("My Tasks")
             }
+            .onAppear {
+                self.loadTasksData()
+            }
             .background(ThemeColors.backgroundDark.ignoresSafeArea())
             .overlay(
                 Button(action: {
