@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TasksView: View {
     @State private var showingTaskDetail = false
-    @State private var tasks: [Task] = Task.sampleTasks()
+    @State private var tasks: [Task] = []
     @State private var taskToEdit: Task? = nil
     @EnvironmentObject var pointsManager: PointsManager
     @EnvironmentObject var dataManager: DataManager

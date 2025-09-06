@@ -11,7 +11,8 @@ struct DashboardView: View {
     @StateObject private var streakManager = StreakManager()
     @EnvironmentObject var pointsManager: PointsManager
     @StateObject private var dataManager = DataManager.shared
-    
+    @State private var tasks: [Task] = [] // Fix: Declare the tasks state variable
+
     private func formatLastSaveDate(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .short
@@ -21,28 +22,21 @@ struct DashboardView: View {
     private func runManualDataValidation() {
         print("🔍 Running manual data validation...")
         
-        // Validate tasks
-        let currentTasks = DataManager.shared.loadTasks()
+        // Validate and reload tasks
         do {
-            let validatedTasks = try DataValidator.shared.validateTasks(currentTasks)
-            if validatedTasks.count != currentTasks.count {
-                print("⚠️ Manual validation corrected \(currentTasks.count - validatedTasks.count) task issues")
-                DataManager.shared.saveTasks(validatedTasks)
-            } else {
-                print("✅ All tasks passed validation")
-            }
+            let currentTasks = dataManager.loadTasksWithValidation()
+            self.tasks = currentTasks // Update the state variable
+            print("✅ All tasks passed validation")
         } catch {
             print("❌ Task validation error: \(error.localizedDescription)")
         }
         
-        // Validate streak
-        let currentStreak = DataManager.shared.loadStreak()
+        // Validate and reload streak
         do {
-            let validatedStreak = try DataValidator.shared.validateStreak(currentStreak)
-            if validatedStreak.currentStreak != currentStreak.currentStreak ||
-               validatedStreak.bestStreak != currentStreak.bestStreak {
+            let validatedStreak = dataManager.loadStreakWithValidation()
+            if validatedStreak.currentStreak != streakManager.currentStreakCount ||
+               validatedStreak.bestStreak != streakManager.bestStreakCount {
                 print("⚠️ Manual validation corrected streak data")
-                DataManager.shared.saveStreak(validatedStreak)
                 streakManager.streak = validatedStreak
             } else {
                 print("✅ Streak data passed validation")
@@ -51,14 +45,12 @@ struct DashboardView: View {
             print("❌ Streak validation error: \(error.localizedDescription)")
         }
         
-        // Validate points
-        let currentPoints = DataManager.shared.loadPoints()
+        // Validate and reload points
         do {
-            let validatedPoints = try DataValidator.shared.validatePoints(currentPoints)
-            if validatedPoints.totalPoints != currentPoints.totalPoints ||
-               validatedPoints.level != currentPoints.level {
+            let validatedPoints = dataManager.loadPointsWithValidation()
+            if validatedPoints.totalPoints != pointsManager.totalPoints ||
+               validatedPoints.level != pointsManager.currentLevel {
                 print("⚠️ Manual validation corrected points data")
-                DataManager.shared.savePoints(validatedPoints)
                 pointsManager.userPoints = validatedPoints
             } else {
                 print("✅ Points data passed validation")
@@ -68,7 +60,7 @@ struct DashboardView: View {
         }
         
         // Create backup after validation
-        let backupSuccess = DataManager.shared.createBackup()
+        let backupSuccess = dataManager.createBackup()
         if backupSuccess {
             print("✅ Backup created after validation")
         }
@@ -436,75 +428,3 @@ struct DashboardView: View {
         }
     }
 }
-
-//#Preview {
-//    DashboardView()
-//        .environmentObject(PointsManager())
-//}
-            
-            
-//                    // Sample Achievement Card
-//                    VStack(spacing: 8) {
-//                        Text("🔥 Current Streak")
-//                            .cardTitle()
-//
-//                        Text("7")
-//                            .streakCounter()
-//
-//                        Text("Days completed!")
-//                            .achievementText()
-//                    }
-//                    .achievementCard()
-//
-//                    // Sample Task Card
-//                    VStack(alignment: .leading, spacing: 12) {
-//                        Text("Today's Tasks")
-//                            .cardTitle()
-//                        
-//                        Text("Complete 3 daily goals to maintain your streak")
-//                            .bodyText()
-//                        
-//                        Button("View Tasks") {
-//                            print("Tasks button tapped")
-//                        }
-//                        .buttonStyle(PrimaryButtonStyle())
-//                    }
-//                    .dashboardCard()
-//                    
-//                    // Sample Stats Card
-//                    VStack(spacing: 12) {
-//                        Text("Weekly Progress")
-//                            .cardTitle()
-//                        
-//                        HStack {
-//                            VStack(alignment: .leading) {
-//                                Text("85%")
-//                                    .font(.title2)
-//                                    .fontWeight(.bold)
-//                                    .foregroundStyle(ThemeColors.successGreen)
-//                                Text("Completed")
-//                                    .captionText()
-//                            }
-//                            
-//                            Spacer()
-//                            
-//                            Button("View Chart") {
-//                                print("Chart button tapped")
-//                            }
-//                            .buttonStyle(SecondaryButtonStyle())
-//                        }
-//                    }
-//                    .statsCard()
-                    
-//                    Spacer(minLength: 20)
-//                }
-//                .padding(.horizontal, 16)
-//            }
-//        }
-//    }
-//}
-//
-//#Preview {
-//    DashboardView()
-//        .environmentObject(PointsManager())
-//}

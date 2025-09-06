@@ -79,6 +79,23 @@ class DataManager: ObservableObject {
         }
     }
     
+    // Private method to load tasks without validation, used for internal checks
+    private func loadTasks() -> [Task] {
+        guard let data = userDefaults.data(forKey: tasksKey),
+              let tasks = try? JSONDecoder().decode([Task].self, from: data) else {
+            return []
+        }
+        return tasks
+    }
+    
+    private func attemptTaskBackupRestore() -> [Task]? {
+        guard let data = userDefaults.data(forKey: "app_data_backup"),
+              let backup = try? JSONDecoder().decode(AppDataBackup.self, from: data) else {
+            return nil
+        }
+        return backup.tasks
+    }
+    
     // MARK: - Streak Management
     
     func saveStreak(_ streak: Streak) {
@@ -134,6 +151,23 @@ class DataManager: ObservableObject {
             saveStreak(newStreak)
             return newStreak
         }
+    }
+    
+    // Private method to load streak without validation
+    private func loadStreak() -> Streak {
+        guard let data = userDefaults.data(forKey: streakKey),
+              let streak = try? JSONDecoder().decode(Streak.self, from: data) else {
+            return Streak()
+        }
+        return streak
+    }
+    
+    private func attemptStreakBackupRestore() -> Streak? {
+        guard let data = userDefaults.data(forKey: "app_data_backup"),
+              let backup = try? JSONDecoder().decode(AppDataBackup.self, from: data) else {
+            return nil
+        }
+        return backup.streak
     }
     
     // MARK: - Points Management
@@ -193,6 +227,23 @@ class DataManager: ObservableObject {
         }
     }
     
+    // Private method to load points without validation
+    private func loadPoints() -> UserPoints {
+        guard let data = userDefaults.data(forKey: pointsKey),
+              let points = try? JSONDecoder().decode(UserPoints.self, from: data) else {
+            return UserPoints()
+        }
+        return points
+    }
+    
+    private func attemptPointsBackupRestore() -> UserPoints? {
+        guard let data = userDefaults.data(forKey: "app_data_backup"),
+              let backup = try? JSONDecoder().decode(AppDataBackup.self, from: data) else {
+            return nil
+        }
+        return backup.points
+    }
+    
     // MARK: - Utility Methods
     
     private func updateLastSaveDate() {
@@ -222,7 +273,6 @@ class DataManager: ObservableObject {
     func validateAndRepairData() -> Bool {
         var hasIssues = false
         
-        // Validate tasks
         let tasks = loadTasks()
         let validTasks = tasks.filter { task in
             !task.title.isEmpty && task.createdDate <= Date()
@@ -234,7 +284,6 @@ class DataManager: ObservableObject {
             hasIssues = true
         }
         
-        // Validate points
         let points = loadPoints()
         if points.totalPoints < 0 || points.level < 1 {
             print("⚠️ Found invalid points data, resetting")
@@ -243,7 +292,6 @@ class DataManager: ObservableObject {
             hasIssues = true
         }
         
-        // Validate streak
         let streak = loadStreak()
         if streak.currentStreak < 0 || streak.bestStreak < streak.currentStreak {
             print("⚠️ Found invalid streak data, repairing")
@@ -287,7 +335,6 @@ class DataManager: ObservableObject {
             return false
         }
         
-        // Restore data from backup
         saveTasks(backup.tasks)
         saveStreak(backup.streak)
         savePoints(backup.points)
@@ -323,7 +370,6 @@ class DataManager: ObservableObject {
         Last updated: \(getLastSaveDate()?.formatted() ?? "Never")
         """
     }
-    
 }
 
 struct AppDataBackup: Codable {

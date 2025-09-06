@@ -7,6 +7,25 @@
 
 import SwiftUI
 
+enum ValidationError: Error, LocalizedError, Identifiable {
+    case missingRequiredFields(String)
+    case invalidDateRange(String)
+    case inconsistentData(String)
+    case negativeValues(String)
+    
+    var id: String { self.localizedDescription }
+    
+    var description: String {
+        switch self {
+        case .missingRequiredFields(let message),
+             .invalidDateRange(let message),
+             .inconsistentData(let message),
+             .negativeValues(let message):
+            return message
+        }
+    }
+}
+
 struct ValidationAlertView: View {
     let validationResults: ValidationResults
     @Binding var isPresented: Bool

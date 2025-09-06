@@ -15,27 +15,16 @@ class StreakManager: ObservableObject {
     private let streakKey = "user_streak_data"
     
     init() {
-        loadStreak()
-        checkDailyReset()
-    }
-    
-    // Load streak data from UserDefaults
-    private func loadStreak() {
-        //        if let data = userDefaults.data(forKey: streakKey),
-        //           let savedStreak = try? JSONDecoder().decode(Streak.self, from: data) {
-        //            streak = savedStreak
-        //        }
         // Load streak data using validated DataManager methods
         print("🔥 StreakManager: Loading validated streak data")
         streak = DataManager.shared.loadStreakWithValidation()
         print("🔥 StreakManager: Loaded streak - Current: \(streak.currentStreak), Best: \(streak.bestStreak)")
+        
+        checkDailyReset()
     }
     
     // Save streak data to UserDefaults
     private func saveStreak() {
-        //        if let data = try? JSONEncoder().encode(streak) {
-        //            userDefaults.set(data, forKey: streakKey)
-        //        }
         DataManager.shared.saveStreak(streak)
     }
     

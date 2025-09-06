@@ -18,27 +18,16 @@ class PointsManager: ObservableObject {
     private let pointsKey = "user_points_data"
     
     init() {
-        loadPoints()
-        checkDailyReset()
-    }
-    
-    // Load points data from UserDefaults
-    private func loadPoints() {
-//        if let data = userDefaults.data(forKey: pointsKey),
-//           let savedPoints = try? JSONDecoder().decode(UserPoints.self, from: data) {
-//            userPoints = savedPoints
-//           }
         // Load points data using validated DataManager methods
         print("🏆 PointsManager: Loading validated points data")
         userPoints = DataManager.shared.loadPointsWithValidation()
         print("🏆 PointsManager: Loaded points - Total: \(userPoints.totalPoints), Level: \(userPoints.level)")
+        
+        checkDailyReset()
     }
     
     // Save points data to UserDefaults
     private func savePoints() {
-//        if let data = try? JSONEncoder().encode(userPoints) {
-//            userDefaults.set(data, forKey: pointsKey)
-//        }
         DataManager.shared.savePoints(userPoints)
     }
     
