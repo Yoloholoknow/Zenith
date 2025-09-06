@@ -18,7 +18,7 @@ struct ContentView: View {
                     Label("Dashboard", systemImage: "house")
                 }
             
-            TasksView( pointsManager: <#PointsManager#>)
+            TasksView()
                 .tabItem {
                     Label("Tasks", systemImage: "list.bullet")
                 }
@@ -28,13 +28,14 @@ struct ContentView: View {
                     Label("Stats", systemImage: "chart.bar")
                 }
         }
-        // These two lines set the background color of the tab bar
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarBackground(ThemeColors.cardBackground, for: .tabBar)
-        // This line sets the color for the selected icon
         .tint(ThemeColors.secondaryPurple)
         .environmentObject(pointsManager)
         .environmentObject(streakManager)
+        .environmentObject(NetworkManager.shared)
+        .environmentObject(LLMService.shared)
+        .environmentObject(DataManager.shared)
     }
 }
 

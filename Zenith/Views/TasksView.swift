@@ -255,11 +255,21 @@
 //    }
 //}
 
+//
+//  TasksView.swift
+//  Zenith
+//
+//  Created by Charles Huang on 9/2/25.
+//
+
+import SwiftUI
+
 struct TasksView: View {
-    @State private var tasks: [Task] = Task.sampleTasks()
+    @State private var tasks: [Task] = []
     @State private var showingAddTask = false
     @State private var showingAIGeneration = false
     @EnvironmentObject var pointsManager: PointsManager
+    @EnvironmentObject var dataManager: DataManager
     
     var body: some View {
         NavigationView {
@@ -399,6 +409,66 @@ struct TasksView: View {
             return ThemeColors.warningOrange
         case .critical:
             return Color.red
+        }
+    }
+}
+
+// Add the missing AddTaskView implementation
+struct AddTaskView: View {
+    @Binding var isPresented: Bool
+    @Binding var tasks: [Task]
+    @State private var taskTitle: String = ""
+    @State private var taskDescription: String = ""
+    @State private var selectedPriority: TaskPriority = .medium
+    @State private var selectedCategory: TaskCategory = .other
+    
+    let onTaskAdded: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Task Details")) {
+                    TextField("Task title", text: $taskTitle)
+                    TextField("Description (optional)", text: $taskDescription, axis: .vertical)
+                        .lineLimit(3...6)
+                    
+                    Picker("Priority", selection: $selectedPriority) {
+                        ForEach(TaskPriority.allCases, id: \.self) { priority in
+                            Text(priority.rawValue).tag(priority)
+                        }
+                    }
+                    
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(TaskCategory.allCases, id: \.self) { category in
+                            Text(category.rawValue).tag(category)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Add New Task")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        let newTask = Task(
+                            title: taskTitle,
+                            description: taskDescription,
+                            priority: selectedPriority,
+                            category: selectedCategory
+                        )
+                        tasks.append(newTask)
+                        onTaskAdded()
+                        isPresented = false
+                    }
+                    .disabled(taskTitle.isEmpty)
+                }
+            }
         }
     }
 }

@@ -42,7 +42,7 @@ class DataManager: ObservableObject {
         guard let data = userDefaults.data(forKey: tasksKey) else {
             print("📝 No saved tasks found, returning sample tasks")
             let sampleTasks = Task.sampleTasks()
-            saveTasks(sampleTasks) // Save sample tasks for future use
+            saveTasks(sampleTasks)
             return sampleTasks
         }
         
@@ -50,10 +50,8 @@ class DataManager: ObservableObject {
             let tasks = try JSONDecoder().decode([Task].self, from: data)
             print("📝 Loaded \(tasks.count) tasks from storage")
             
-            // Validate loaded tasks
             let validatedTasks = try DataValidator.shared.validateTasks(tasks)
             
-            // If validation made changes, save the corrected data
             if validatedTasks.count != tasks.count {
                 print("📝 Validation corrected tasks, saving updated data")
                 saveTasks(validatedTasks)
@@ -65,13 +63,11 @@ class DataManager: ObservableObject {
         } catch let decodingError {
             print("❌ Failed to decode tasks: \(decodingError.localizedDescription)")
             
-            // Attempt to restore from backup
             if let backupTasks = attemptTaskBackupRestore() {
                 print("🔄 Restored \(backupTasks.count) tasks from backup")
                 return backupTasks
             }
             
-            // Fall back to sample tasks
             print("🔄 Falling back to sample tasks")
             let sampleTasks = Task.sampleTasks()
             saveTasks(sampleTasks)
@@ -79,8 +75,8 @@ class DataManager: ObservableObject {
         }
     }
     
-    // Private method to load tasks without validation, used for internal checks
-    private func loadTasks() -> [Task] {
+    // Changed from private to internal
+    func loadTasks() -> [Task] {
         guard let data = userDefaults.data(forKey: tasksKey),
               let tasks = try? JSONDecoder().decode([Task].self, from: data) else {
             return []
@@ -123,10 +119,8 @@ class DataManager: ObservableObject {
             let streak = try JSONDecoder().decode(Streak.self, from: data)
             print("🔥 Loaded streak from storage: \(streak.currentStreak) days")
             
-            // Validate loaded streak
             let validatedStreak = try DataValidator.shared.validateStreak(streak)
             
-            // If validation made changes, save the corrected data
             if validatedStreak.currentStreak != streak.currentStreak ||
                validatedStreak.bestStreak != streak.bestStreak {
                 print("🔥 Validation corrected streak, saving updated data")
@@ -139,13 +133,11 @@ class DataManager: ObservableObject {
         } catch let decodingError {
             print("❌ Failed to decode streak: \(decodingError.localizedDescription)")
             
-            // Attempt backup restore
             if let backupStreak = attemptStreakBackupRestore() {
                 print("🔄 Restored streak from backup: \(backupStreak.currentStreak) days")
                 return backupStreak
             }
             
-            // Fall back to new streak
             print("🔄 Falling back to new streak")
             let newStreak = Streak()
             saveStreak(newStreak)
@@ -154,7 +146,7 @@ class DataManager: ObservableObject {
     }
     
     // Private method to load streak without validation
-    private func loadStreak() -> Streak {
+    func loadStreak() -> Streak {
         guard let data = userDefaults.data(forKey: streakKey),
               let streak = try? JSONDecoder().decode(Streak.self, from: data) else {
             return Streak()
@@ -197,10 +189,8 @@ class DataManager: ObservableObject {
             let points = try JSONDecoder().decode(UserPoints.self, from: data)
             print("🏆 Loaded points from storage: \(points.totalPoints) total, Level \(points.level)")
             
-            // Validate loaded points
             let validatedPoints = try DataValidator.shared.validatePoints(points)
             
-            // If validation made changes, save the corrected data
             if validatedPoints.totalPoints != points.totalPoints ||
                validatedPoints.level != points.level {
                 print("🏆 Validation corrected points, saving updated data")
@@ -213,13 +203,11 @@ class DataManager: ObservableObject {
         } catch let decodingError {
             print("❌ Failed to decode points: \(decodingError.localizedDescription)")
             
-            // Attempt backup restore
             if let backupPoints = attemptPointsBackupRestore() {
                 print("🔄 Restored points from backup: \(backupPoints.totalPoints) total")
                 return backupPoints
             }
             
-            // Fall back to new points
             print("🔄 Falling back to new points record")
             let newPoints = UserPoints()
             savePoints(newPoints)
@@ -228,7 +216,7 @@ class DataManager: ObservableObject {
     }
     
     // Private method to load points without validation
-    private func loadPoints() -> UserPoints {
+    func loadPoints() -> UserPoints {
         guard let data = userDefaults.data(forKey: pointsKey),
               let points = try? JSONDecoder().decode(UserPoints.self, from: data) else {
             return UserPoints()

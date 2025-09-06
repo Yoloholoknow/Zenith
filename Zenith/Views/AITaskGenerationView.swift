@@ -250,7 +250,6 @@ struct AITaskGenerationView: View {
         
         print("✅ Added \(tasksToAdd.count) AI-generated tasks to main list")
         
-        // Clear generated tasks after adding
         taskGenerator.generatedTasks.removeAll()
         selectedTasks.removeAll()
     }
@@ -267,8 +266,4 @@ struct AITaskGenerationView: View {
             return Color.red
         }
     }
-}
-
-#Preview {
-    AITaskGenerationView()
 }

@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct DashboardView: View {
-    @StateObject private var streakManager = StreakManager()
     @EnvironmentObject var pointsManager: PointsManager
+    @EnvironmentObject var streakManager: StreakManager
+    @EnvironmentObject var networkManager: NetworkManager
+    @EnvironmentObject var llmService: LLMService
     @StateObject private var dataManager = DataManager.shared
-    @State private var tasks: [Task] = [] // Fix: Declare the tasks state variable
+    @State private var tasks: [Task] = []
     
-    @StateObject private var networkManager = NetworkManager.shared
-    @StateObject private var llmService = LLMService.shared
     @State private var showingAPISettings = false
     @State private var showingAIGeneration = false
     @State private var showingPreferences = false
@@ -29,16 +29,14 @@ struct DashboardView: View {
     private func runManualDataValidation() {
         print("🔍 Running manual data validation...")
         
-        // Validate and reload tasks
         do {
             let currentTasks = dataManager.loadTasksWithValidation()
-            self.tasks = currentTasks // Update the state variable
+            self.tasks = currentTasks
             print("✅ All tasks passed validation")
         } catch {
             print("❌ Task validation error: \(error.localizedDescription)")
         }
         
-        // Validate and reload streak
         do {
             let validatedStreak = dataManager.loadStreakWithValidation()
             if validatedStreak.currentStreak != streakManager.currentStreakCount ||
@@ -52,7 +50,6 @@ struct DashboardView: View {
             print("❌ Streak validation error: \(error.localizedDescription)")
         }
         
-        // Validate and reload points
         do {
             let validatedPoints = dataManager.loadPointsWithValidation()
             if validatedPoints.totalPoints != pointsManager.totalPoints ||
@@ -66,7 +63,6 @@ struct DashboardView: View {
             print("❌ Points validation error: \(error.localizedDescription)")
         }
         
-        // Create backup after validation
         let backupSuccess = dataManager.createBackup()
         if backupSuccess {
             print("✅ Backup created after validation")
@@ -81,7 +77,6 @@ struct DashboardView: View {
 
             ScrollView {
                 VStack(spacing: 20) {
-                    // Dashboard Header
                     VStack(spacing: 8) {
                         Text("Zenith")
                             .font(.system(size: 60, weight: .heavy, design: .rounded))
@@ -99,7 +94,6 @@ struct DashboardView: View {
                     .padding(.bottom, 20)
                     
                     VStack(spacing: 20) {
-                        // Welcome Header
                         VStack(spacing: 8) {
                             Text("Welcome Back!")
                                 .dashboardTitle()
@@ -151,7 +145,7 @@ struct DashboardView: View {
                                         .foregroundColor(.secondary)
                                 }
                                 
-                                Text("Last generated: \(llmService.lastGeneratedTasks.isEmpty ? "Never" : "Recently")")
+                                Text("Last generated: \(taskGenerator.getGenerationStatus())")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -295,7 +289,6 @@ struct DashboardView: View {
                         }
                         
                         HStack {
-                            // Total Points
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("\(pointsManager.totalPoints)")
                                     .font(.system(size: 32, weight: .bold))
@@ -307,7 +300,6 @@ struct DashboardView: View {
                             
                             Spacer()
                             
-                            // Level & Progress
                             VStack(alignment: .trailing, spacing: 8) {
                                 HStack(spacing: 4) {
                                     Text("Level")
@@ -318,7 +310,6 @@ struct DashboardView: View {
                                         .foregroundColor(ThemeColors.streakGold)
                                 }
                                 
-                                // Progress Bar
                                 VStack(alignment: .trailing, spacing: 4) {
                                     ProgressView(value: pointsManager.levelProgress)
                                         .progressViewStyle(LinearProgressViewStyle(tint: ThemeColors.successGreen))
@@ -331,7 +322,6 @@ struct DashboardView: View {
                             }
                         }
                         
-                        // Daily Points
                         HStack {
                             Text("Today: +\(pointsManager.dailyPoints) points")
                                 .successText()
@@ -346,7 +336,6 @@ struct DashboardView: View {
                     
                     // MARK: - Streak Display
                     VStack(spacing: 24) {
-                        // Main Streak Display
                         Button(action: {
                             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                                 streakManager.markTodayCompleted()
@@ -377,7 +366,6 @@ struct DashboardView: View {
                                 .cardTitle()
                             
                             HStack(spacing: 16) {
-                                // Current Streak
                                 VStack(spacing: 8) {
                                     Text("\(streakManager.currentStreakCount)")
                                         .font(.title2)
@@ -390,7 +378,6 @@ struct DashboardView: View {
                                 .frame(maxWidth: .infinity)
                                 .dashboardCard()
                                 
-                                // Best Streak
                                 VStack(spacing: 8) {
                                     Text("\(streakManager.bestStreakCount)")
                                         .font(.title2)
@@ -403,7 +390,6 @@ struct DashboardView: View {
                                 .frame(maxWidth: .infinity)
                                 .dashboardCard()
                                 
-                                // Total Days
                                 VStack(spacing: 8) {
                                     Text("\(streakManager.streak.totalDaysCompleted)")
                                         .font(.title2)
@@ -474,7 +460,6 @@ struct DashboardView: View {
                                     
                                     Button("Clear All") {
                                         dataManager.clearAllData()
-                                        // Refresh managers
                                         pointsManager.resetPoints()
                                         streakManager.resetStreak()
                                     }
@@ -604,25 +589,26 @@ struct DashboardView: View {
                 .zIndex(1)
             }
         }
-    }
-        }
         .sheet(isPresented: $showingAIGeneration) {
             AITaskGenerationView(tasks: $tasks, onTasksAdded: saveTasksData)
+                .environmentObject(llmService)
         }
         .sheet(isPresented: $showingPreferences) {
             PreferencesView()
         }
+        .sheet(isPresented: $showingAPISettings) {
+            APISettingsView()
+        }
         .onAppear {
             loadTasksData()
         }
-        }
-
-        private func loadTasksData() {
+    }
+    
+    private func loadTasksData() {
         tasks = DataManager.shared.loadTasksWithValidation()
-        }
-
-        private func saveTasksData() {
+    }
+    
+    private func saveTasksData() {
         DataManager.shared.saveTasks(tasks)
-        }
     }
 }

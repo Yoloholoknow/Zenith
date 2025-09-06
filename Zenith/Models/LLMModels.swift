@@ -85,16 +85,20 @@ struct TaskGenerationRequest {
     let userPreferences: UserPreferences
     let currentStreak: Int
     let completedTasks: [Task]
-    let focusAreas: [TaskCategory]
     
     func toPrompt() -> String {
         return """
-        Generate 3-5 personalized daily tasks for a user with the following profile:
+        Generate \(userPreferences.dailyTaskCount) personalized daily tasks for a user with the following profile:
         
         User Preferences:
-        - Focus Areas: \(focusAreas.map { $0.rawValue }.joined(separator: ", "))
-        - Difficulty Level: \(userPreferences.difficultyLevel)
-        - Available Time: \(userPreferences.availableTimeMinutes) minutes
+        - Preferred categories: \(userPreferences.preferredCategoriesString)
+        - Difficulty level: \(userPreferences.preferredDifficulty.rawValue)
+        - Time availability: \(userPreferences.timeAvailability.rawValue)
+        - Focus areas: \(userPreferences.focusAreas.joined(separator: ", "))
+        - Include routine tasks: \(userPreferences.includeRoutineTasks ? "Yes" : "No")
+        - Include challenges: \(userPreferences.includeChallenges ? "Yes" : "No")
+        - Morning preference: \(userPreferences.preferMorningTasks ? "Yes" : "No")
+        - Max duration per task: \(userPreferences.maxTaskDuration) minutes
         - Current Streak: \(currentStreak) days
         
         Recently Completed Tasks:
@@ -113,8 +117,7 @@ struct TaskGenerationRequest {
             "title": "Task title",
             "description": "Detailed description",
             "priority": "Low/Medium/High/Critical",
-            "category": "Work/Health/Personal/Learning/Social/Finance/Other",
-            "estimatedMinutes": 30
+            "category": "Work/Health/Personal/Learning/Social/Finance/Other"
           }
         ]
         """
@@ -129,34 +132,6 @@ struct TaskGenerationRequest {
     }
 }
 
-struct UserPreferences: Codable {
-    let difficultyLevel: DifficultyLevel
-    let availableTimeMinutes: Int
-    let preferredCategories: [TaskCategory]
-    let workSchedule: WorkSchedule
-    
-    init() {
-        self.difficultyLevel = .medium
-        self.availableTimeMinutes = 60
-        self.preferredCategories = [.personal, .health]
-        self.workSchedule = .flexible
-    }
-}
-
-enum DifficultyLevel: String, CaseIterable, Codable {
-    case easy = "Easy"
-    case medium = "Medium"
-    case hard = "Hard"
-    case expert = "Expert"
-}
-
-enum WorkSchedule: String, CaseIterable, Codable {
-    case morning = "Morning Person"
-    case evening = "Evening Person"
-    case flexible = "Flexible"
-    case busy = "Very Busy"
-}
-
 // MARK: - Generated Task Response
 
 struct GeneratedTaskResponse: Codable {
@@ -164,7 +139,7 @@ struct GeneratedTaskResponse: Codable {
     let description: String
     let priority: String
     let category: String
-    let estimatedMinutes: Int
+    let estimatedMinutes: Int?
     
     func toTask() -> Task? {
         guard let priority = TaskPriority(rawValue: priority),

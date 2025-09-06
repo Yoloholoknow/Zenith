@@ -25,8 +25,7 @@ class LLMService: ObservableObject {
     func generateDailyTasks(
         userPreferences: UserPreferences,
         currentStreak: Int,
-        completedTasks: [Task],
-        focusAreas: [TaskCategory] = [.personal, .health, .work]
+        completedTasks: [Task]
     ) -> AnyPublisher<[Task], NetworkError> {
         
         isGenerating = true
@@ -35,8 +34,7 @@ class LLMService: ObservableObject {
         let request = TaskGenerationRequest(
             userPreferences: userPreferences,
             currentStreak: currentStreak,
-            completedTasks: completedTasks,
-            focusAreas: focusAreas
+            completedTasks: completedTasks
         )
         
         let chatRequest = createChatRequest(from: request)
@@ -91,8 +89,7 @@ class LLMService: ObservableObject {
         return generateDailyTasks(
             userPreferences: defaultPreferences,
             currentStreak: 0,
-            completedTasks: [],
-            focusAreas: [.personal, .health]
+            completedTasks: []
         )
     }
     

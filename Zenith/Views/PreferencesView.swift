@@ -184,7 +184,3 @@ struct PreferencesView: View {
         print("✅ Preferences saved: \(preferences.dailyTaskCount) tasks, \(preferences.preferredDifficulty.rawValue) difficulty")
     }
 }
-
-#Preview {
-    PreferencesView()
-}
