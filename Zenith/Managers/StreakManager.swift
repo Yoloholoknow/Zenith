@@ -25,7 +25,10 @@ class StreakManager: ObservableObject {
         //           let savedStreak = try? JSONDecoder().decode(Streak.self, from: data) {
         //            streak = savedStreak
         //        }
-        streak = DataManager.shared.loadStreak()
+        // Load streak data using validated DataManager methods
+        print("🔥 StreakManager: Loading validated streak data")
+        streak = DataManager.shared.loadStreakWithValidation()
+        print("🔥 StreakManager: Loaded streak - Current: \(streak.currentStreak), Best: \(streak.bestStreak)")
     }
     
     // Save streak data to UserDefaults

@@ -28,7 +28,10 @@ class PointsManager: ObservableObject {
 //           let savedPoints = try? JSONDecoder().decode(UserPoints.self, from: data) {
 //            userPoints = savedPoints
 //           }
-        userPoints = DataManager.shared.loadPoints()
+        // Load points data using validated DataManager methods
+        print("🏆 PointsManager: Loading validated points data")
+        userPoints = DataManager.shared.loadPointsWithValidation()
+        print("🏆 PointsManager: Loaded points - Total: \(userPoints.totalPoints), Level: \(userPoints.level)")
     }
     
     // Save points data to UserDefaults

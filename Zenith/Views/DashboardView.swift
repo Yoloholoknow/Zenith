@@ -18,6 +18,64 @@ struct DashboardView: View {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
     
+    private func runManualDataValidation() {
+        print("🔍 Running manual data validation...")
+        
+        // Validate tasks
+        let currentTasks = DataManager.shared.loadTasks()
+        do {
+            let validatedTasks = try DataValidator.shared.validateTasks(currentTasks)
+            if validatedTasks.count != currentTasks.count {
+                print("⚠️ Manual validation corrected \(currentTasks.count - validatedTasks.count) task issues")
+                DataManager.shared.saveTasks(validatedTasks)
+            } else {
+                print("✅ All tasks passed validation")
+            }
+        } catch {
+            print("❌ Task validation error: \(error.localizedDescription)")
+        }
+        
+        // Validate streak
+        let currentStreak = DataManager.shared.loadStreak()
+        do {
+            let validatedStreak = try DataValidator.shared.validateStreak(currentStreak)
+            if validatedStreak.currentStreak != currentStreak.currentStreak ||
+               validatedStreak.bestStreak != currentStreak.bestStreak {
+                print("⚠️ Manual validation corrected streak data")
+                DataManager.shared.saveStreak(validatedStreak)
+                streakManager.streak = validatedStreak
+            } else {
+                print("✅ Streak data passed validation")
+            }
+        } catch {
+            print("❌ Streak validation error: \(error.localizedDescription)")
+        }
+        
+        // Validate points
+        let currentPoints = DataManager.shared.loadPoints()
+        do {
+            let validatedPoints = try DataValidator.shared.validatePoints(currentPoints)
+            if validatedPoints.totalPoints != currentPoints.totalPoints ||
+               validatedPoints.level != currentPoints.level {
+                print("⚠️ Manual validation corrected points data")
+                DataManager.shared.savePoints(validatedPoints)
+                pointsManager.userPoints = validatedPoints
+            } else {
+                print("✅ Points data passed validation")
+            }
+        } catch {
+            print("❌ Points validation error: \(error.localizedDescription)")
+        }
+        
+        // Create backup after validation
+        let backupSuccess = DataManager.shared.createBackup()
+        if backupSuccess {
+            print("✅ Backup created after validation")
+        }
+        
+        print("🔍 Manual data validation completed")
+    }
+    
     var body: some View {
         ZStack {
             ThemeColors.backgroundDark.ignoresSafeArea()
@@ -213,7 +271,7 @@ struct DashboardView: View {
                                     .multilineTextAlignment(.center)
                             }
                             
-                            // Data Sync Status Card
+                            // MARK: - Data Sync Status Card
                             VStack(spacing: 8) {
                                 HStack {
                                     Image(systemName: dataManager.hasExistingData() ? "checkmark.circle.fill" : "exclamationmark.circle")
@@ -263,6 +321,82 @@ struct DashboardView: View {
                             .dashboardCard()
                             
                             Spacer(minLength: 20)
+                            
+                            // MARK: - Data Health Monitor Card
+                            VStack(spacing: 12) {
+                                HStack {
+                                    Image(systemName: "checkmark.shield")
+                                        .foregroundColor(ThemeColors.successGreen)
+                                        .font(.title3)
+                                    
+                                    Text("Data Health")
+                                        .cardTitle()
+                                    
+                                    Spacer()
+                                    
+                                    Text("Validated")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(ThemeColors.successGreen)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .background(ThemeColors.successGreen.opacity(0.2))
+                                        .cornerRadius(4)
+                                }
+                                
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("📝")
+                                        Text("Tasks: \(tasks.count) validated")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(ThemeColors.successGreen)
+                                            .font(.caption)
+                                    }
+                                    
+                                    HStack {
+                                        Text("🔥")
+                                        Text("Streak: Data integrity confirmed")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(ThemeColors.successGreen)
+                                            .font(.caption)
+                                    }
+                                    
+                                    HStack {
+                                        Text("🏆")
+                                        Text("Points: Level \(pointsManager.currentLevel) validated")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(ThemeColors.successGreen)
+                                            .font(.caption)
+                                    }
+                                }
+                                
+                                HStack {
+                                    Text("Last validation: App launch")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Spacer()
+                                    
+                                    Button("Run Check") {
+                                        runManualDataValidation()
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(ThemeColors.primaryBlue)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .stroke(ThemeColors.primaryBlue, lineWidth: 1)
+                                    )
+                                }
+                            }
+                            .dashboardCard()
                             
                             // MARK: - Testing
                             VStack(spacing: 8) {

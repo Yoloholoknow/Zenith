@@ -12,12 +12,13 @@ struct TasksView: View {
     @State private var tasks: [Task] = Task.sampleTasks()
     @State private var taskToEdit: Task? = nil
     @EnvironmentObject var pointsManager: PointsManager
-    @StateObject private var dataManager = DataManager.shared
+    @EnvironmentObject var dataManager: DataManager
     
     private func loadTasksData() {
-        tasks = DataManager.shared.loadTasks()
+        print("📝 ContentView: Loading validated task data")
+        tasks = DataManager.shared.loadTasksWithValidation()
+        print("📝 ContentView: Loaded \(tasks.count) validated tasks")
     }
-    
     private func saveTasksData() {
         DataManager.shared.saveTasks(tasks)
     }
@@ -147,7 +148,9 @@ struct TasksView: View {
                 , alignment: .bottomTrailing
             )
             .sheet(isPresented: $showingTaskDetail) {
-                TaskDetailView(tasks: $tasks, taskToEdit: $taskToEdit, onTaskAdded: () -> Void )
+                TaskDetailView(tasks: $tasks, taskToEdit: $taskToEdit) {
+                    self.saveTasksData()
+                }
             }
             
             // Celebration overlay
@@ -245,8 +248,3 @@ struct TaskDetailView: View {
         }
     }
 }
-
-//#Preview {
-//    TasksView()
-//        .environmentObject(PointsManager())
-//}

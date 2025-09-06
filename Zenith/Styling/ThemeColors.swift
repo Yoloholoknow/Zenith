@@ -14,8 +14,8 @@ struct ThemeColors {
     // Background colors
     static let backgroundLight = Color(red: 0.98, green: 0.98, blue: 1.0)
     static let backgroundDark = Color(red: 0.1, green: 0.1, blue: 0.15)
-    static let cardBackground = Color(red: 0.13, green: 0.13, blue:
-                                        0.25)
+    static let cardBackground = Color(red: 0.13, green: 0.13, blue: 0.25)
+    
     // Gamification colors
     static let successGreen = Color(red: 0.2, green: 0.8, blue: 0.4)
     static let warningOrange = Color(red: 1.0, green: 0.6, blue: 0.2)

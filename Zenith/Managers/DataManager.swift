@@ -36,19 +36,46 @@ class DataManager: ObservableObject {
         }
     }
     
-    func loadTasks() -> [Task] {
+    func loadTasksWithValidation() -> [Task] {
+        print("📝 Loading tasks with validation...")
+        
         guard let data = userDefaults.data(forKey: tasksKey) else {
             print("📝 No saved tasks found, returning sample tasks")
-            return Task.sampleTasks()
+            let sampleTasks = Task.sampleTasks()
+            saveTasks(sampleTasks) // Save sample tasks for future use
+            return sampleTasks
         }
         
         do {
             let tasks = try JSONDecoder().decode([Task].self, from: data)
-            print("✅ Tasks loaded: \(tasks.count) tasks")
-            return tasks
-        } catch {
-            print("❌ Failed to load tasks: \(error.localizedDescription)")
-            return Task.sampleTasks()
+            print("📝 Loaded \(tasks.count) tasks from storage")
+            
+            // Validate loaded tasks
+            let validatedTasks = try DataValidator.shared.validateTasks(tasks)
+            
+            // If validation made changes, save the corrected data
+            if validatedTasks.count != tasks.count {
+                print("📝 Validation corrected tasks, saving updated data")
+                saveTasks(validatedTasks)
+            }
+            
+            print("✅ Tasks validation completed: \(validatedTasks.count) valid tasks")
+            return validatedTasks
+            
+        } catch let decodingError {
+            print("❌ Failed to decode tasks: \(decodingError.localizedDescription)")
+            
+            // Attempt to restore from backup
+            if let backupTasks = attemptTaskBackupRestore() {
+                print("🔄 Restored \(backupTasks.count) tasks from backup")
+                return backupTasks
+            }
+            
+            // Fall back to sample tasks
+            print("🔄 Falling back to sample tasks")
+            let sampleTasks = Task.sampleTasks()
+            saveTasks(sampleTasks)
+            return sampleTasks
         }
     }
     
@@ -65,19 +92,47 @@ class DataManager: ObservableObject {
         }
     }
     
-    func loadStreak() -> Streak {
+    func loadStreakWithValidation() -> Streak {
+        print("🔥 Loading streak with validation...")
+        
         guard let data = userDefaults.data(forKey: streakKey) else {
             print("🔥 No saved streak found, creating new streak")
-            return Streak()
+            let newStreak = Streak()
+            saveStreak(newStreak)
+            return newStreak
         }
         
         do {
             let streak = try JSONDecoder().decode(Streak.self, from: data)
-            print("✅ Streak loaded: \(streak.currentStreak) day streak")
-            return streak
-        } catch {
-            print("❌ Failed to load streak: \(error.localizedDescription)")
-            return Streak()
+            print("🔥 Loaded streak from storage: \(streak.currentStreak) days")
+            
+            // Validate loaded streak
+            let validatedStreak = try DataValidator.shared.validateStreak(streak)
+            
+            // If validation made changes, save the corrected data
+            if validatedStreak.currentStreak != streak.currentStreak ||
+               validatedStreak.bestStreak != streak.bestStreak {
+                print("🔥 Validation corrected streak, saving updated data")
+                saveStreak(validatedStreak)
+            }
+            
+            print("✅ Streak validation completed: \(validatedStreak.currentStreak) days")
+            return validatedStreak
+            
+        } catch let decodingError {
+            print("❌ Failed to decode streak: \(decodingError.localizedDescription)")
+            
+            // Attempt backup restore
+            if let backupStreak = attemptStreakBackupRestore() {
+                print("🔄 Restored streak from backup: \(backupStreak.currentStreak) days")
+                return backupStreak
+            }
+            
+            // Fall back to new streak
+            print("🔄 Falling back to new streak")
+            let newStreak = Streak()
+            saveStreak(newStreak)
+            return newStreak
         }
     }
     
@@ -94,19 +149,47 @@ class DataManager: ObservableObject {
         }
     }
     
-    func loadPoints() -> UserPoints {
+    func loadPointsWithValidation() -> UserPoints {
+        print("🏆 Loading points with validation...")
+        
         guard let data = userDefaults.data(forKey: pointsKey) else {
             print("🏆 No saved points found, creating new points record")
-            return UserPoints()
+            let newPoints = UserPoints()
+            savePoints(newPoints)
+            return newPoints
         }
         
         do {
             let points = try JSONDecoder().decode(UserPoints.self, from: data)
-            print("✅ Points loaded: \(points.totalPoints) total points, Level \(points.level)")
-            return points
-        } catch {
-            print("❌ Failed to load points: \(error.localizedDescription)")
-            return UserPoints()
+            print("🏆 Loaded points from storage: \(points.totalPoints) total, Level \(points.level)")
+            
+            // Validate loaded points
+            let validatedPoints = try DataValidator.shared.validatePoints(points)
+            
+            // If validation made changes, save the corrected data
+            if validatedPoints.totalPoints != points.totalPoints ||
+               validatedPoints.level != points.level {
+                print("🏆 Validation corrected points, saving updated data")
+                savePoints(validatedPoints)
+            }
+            
+            print("✅ Points validation completed: \(validatedPoints.totalPoints) total")
+            return validatedPoints
+            
+        } catch let decodingError {
+            print("❌ Failed to decode points: \(decodingError.localizedDescription)")
+            
+            // Attempt backup restore
+            if let backupPoints = attemptPointsBackupRestore() {
+                print("🔄 Restored points from backup: \(backupPoints.totalPoints) total")
+                return backupPoints
+            }
+            
+            // Fall back to new points
+            print("🔄 Falling back to new points record")
+            let newPoints = UserPoints()
+            savePoints(newPoints)
+            return newPoints
         }
     }
     

@@ -120,7 +120,3 @@ struct Particle: Identifiable {
     let size: Double
     var opacity: Double = 1.0
 }
-
-//#Preview {
-//    CelebrationOverlay(pointsAwarded: 50, isLevelUp: true)
-//}
