@@ -371,16 +371,15 @@ struct TasksView: View {
     }
     
     private func loadTasksData() {
-        tasks = DataManager.shared.loadTasksWithValidation()
+        tasks = dataManager.loadTasksWithValidation()
     }
     
     private func saveTasksData() {
-        DataManager.shared.saveTasks(tasks)
+        dataManager.saveTasks(tasks)
     }
     
     private func toggleTaskCompletion(_ task: Task) {
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            _ = tasks[index].isCompleted
             tasks[index].isCompleted.toggle()
             
             if tasks[index].isCompleted {
@@ -463,8 +462,7 @@ struct AddTaskView: View {
                             category: selectedCategory
                         )
                         tasks.append(newTask)
-                        onTaskAdded() // This calls saveTasksData() which posts the notification
-                        print("➕ Created new task: \(newTask.title) in \(newTask.category.rawValue) category")
+                        onTaskAdded()
                         isPresented = false
                     }
                     .disabled(taskTitle.isEmpty)
@@ -472,34 +470,4 @@ struct AddTaskView: View {
             }
         }
     }
-}
-
-private func saveTasksData() {
-    DataManager.shared.saveTasks(tasks)
-    // Notify stats manager that tasks have been updated
-    NotificationCenter.default.post(name: .tasksUpdated, object: nil)
-    print("📝 Tasks saved and stats notified")
-}
-
-private func toggleTaskCompletion(_ task: Task) {
-    if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-        let wasCompleted = tasks[index].isCompleted
-        
-        if wasCompleted {
-            tasks[index].markAsIncomplete()
-        } else {
-            tasks[index].markAsCompleted()
-            pointsManager.awardPoints(for: tasks[index])
-        }
-        
-        saveTasksData()
-        print("✅ Task '\(task.title)' completion toggled to \(tasks[index].isCompleted)")
-    }
-}
-
-private func deleteTask(at offsets: IndexSet) {
-    let deletedTasks = offsets.map { tasks[$0].title }
-    tasks.remove(atOffsets: offsets)
-    saveTasksData()
-    print("🗑️ Deleted tasks: \(deletedTasks.joined(separator: ", "))")
 }

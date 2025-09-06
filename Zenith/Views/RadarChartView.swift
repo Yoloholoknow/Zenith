@@ -234,6 +234,15 @@ func dataPoint(for data: RadarDataPoint, at index: Int, center: CGPoint, radius:
     )
 }
     
+// Helper function to calculate label points on the radar chart
+func labelPoint(for index: Int, center: CGPoint, radius: Double, totalPoints: Int) -> CGPoint {
+    let angle = (Double(index) * 2 * .pi / Double(totalPoints)) - .pi / 2
+    return CGPoint(
+        x: center.x + cos(angle) * radius,
+        y: center.y + sin(angle) * radius
+    )
+}
+
 struct RadarGridView: Shape {
     let center: CGPoint
     let radius: Double
@@ -298,7 +307,7 @@ func polygonPoints(center: CGPoint, radius: Double, sides: Int) -> [CGPoint] {
     return points
 }
 
-struct RadarDataPoint {
+struct RadarDataPoint: Hashable {
     let label: String
     let value: Double
     let color: Color
@@ -315,11 +324,11 @@ struct RadarDataShape: Shape {
     let radius: Double
     let data: [RadarDataPoint]
     let maxValue: Double
-    let animationProgress: Double
+    var animationProgress: Double
     
     var animatableData: Double {
         get { animationProgress }
-        set { }
+        set { animationProgress = newValue }
     }
     
     func path(in rect: CGRect) -> Path {
@@ -340,17 +349,22 @@ struct RadarDataShape: Shape {
     }
     
     private func dataPoints() -> [CGPoint] {
-        return data.enumerated().map { index, dataPoint in
+        var points: [CGPoint] = []
+        
+        for (index, dataPoint) in data.enumerated() {
             let angle = (Double(index) * 2 * .pi / Double(data.count)) - .pi / 2
             let normalizedValue = min(dataPoint.value / maxValue, 1.0)
             let animatedValue = normalizedValue * animationProgress
             let pointRadius = radius * animatedValue
             
-            return CGPoint(
+            let point = CGPoint(
                 x: center.x + cos(angle) * pointRadius,
                 y: center.y + sin(angle) * pointRadius
             )
+            points.append(point)
         }
+        
+        return points
     }
 }
 
@@ -390,18 +404,3 @@ enum QuickAction {
         }
     }
 }
-
-//#Preview {
-//    RadarChartView(
-//        data: [
-//            RadarDataPoint(label: "Productivity", value: 0.8),
-//            RadarDataPoint(label: "Health", value: 0.6),
-//            RadarDataPoint(label: "Learning", value: 0.9),
-//            RadarDataPoint(label: "Social", value: 0.4),
-//            RadarDataPoint(label: "Finance", value: 0.7)
-//        ],
-//        maxValue: 1.0
-//    )
-//    .frame(width: 300, height: 300)
-//    .padding()
-//}

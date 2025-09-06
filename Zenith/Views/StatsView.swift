@@ -327,7 +327,7 @@ struct StatsView: View {
                     // Overall Score Card
                     VStack(spacing: 12) {
                         HStack {
-                            Text("📊")
+                            Text("ЁЯУК")
                                 .font(.title)
                             
                             Text("Overall Score")
@@ -347,7 +347,7 @@ struct StatsView: View {
                         
                         HStack {
                             if let topCategory = statsManager.getTopCategory(for: selectedTimeframe) {
-                                Text("🏆 Strongest: \(topCategory)")
+                                Text("ЁЯПЖ Strongest: \(topCategory)")
                                     .font(.caption)
                                     .foregroundColor(ThemeColors.successGreen)
                             }
@@ -355,7 +355,7 @@ struct StatsView: View {
                             Spacer()
                             
                             if let weakCategory = statsManager.getNeedsImprovementCategory(for: selectedTimeframe) {
-                                Text("💪 Focus on: \(weakCategory)")
+                                Text("ЁЯТк Focus on: \(weakCategory)")
                                     .font(.caption)
                                     .foregroundColor(ThemeColors.warningOrange)
                             }

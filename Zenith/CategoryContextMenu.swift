@@ -11,7 +11,7 @@ struct CategoryContextMenu: View {
     let category: RadarDataPoint
     
     var body: some View {
-        Group {
+        VStack {
             // View detailed stats
             Button(action: {
                 // This would trigger the detailed popup
@@ -32,7 +32,7 @@ struct CategoryContextMenu: View {
             
             // Set as focus area
             Button(action: {
-                print("Set \(category.label) as focus area")
+                print("識 Setting \(category.label) as focus area")
                 setAsFocusArea()
             }) {
                 Label("Set as Focus Area", systemImage: "target")
@@ -40,7 +40,7 @@ struct CategoryContextMenu: View {
             
             // Get AI suggestions
             Button(action: {
-                print("Get suggestions for \(category.label)")
+                print("､Getting AI suggestions for \(category.label)")
                 getAISuggestions()
             }) {
                 Label("Get Suggestions", systemImage: "lightbulb")
@@ -59,7 +59,7 @@ struct CategoryContextMenu: View {
                 Button("Monthly Goal") {
                     setMonthlyGoal()
                 }
-            } icon: {
+            } primaryAction: {
                 Image(systemName: "flag")
             }
             
@@ -74,7 +74,7 @@ struct CategoryContextMenu: View {
     
     private func setAsFocusArea() {
         // Add to user preferences as a focus area
-        print("🎯 Setting \(category.label) as focus area")
+        print("識 Setting \(category.label) as focus area")
         
         // Haptic feedback for action completion
         let notificationFeedback = UINotificationFeedbackGenerator()
@@ -83,7 +83,7 @@ struct CategoryContextMenu: View {
     
     private func getAISuggestions() {
         // Trigger AI suggestion generation for this category
-        print("🤖 Getting AI suggestions for \(category.label)")
+        print("､Getting AI suggestions for \(category.label)")
         
         // In a real implementation, this would:
         // 1. Analyze current performance
@@ -92,25 +92,25 @@ struct CategoryContextMenu: View {
     }
     
     private func setDailyGoal() {
-        print("📅 Setting daily goal for \(category.label)")
+        print("套 Setting daily goal for \(category.label)")
         // This would open a goal-setting interface
     }
     
     private func setWeeklyGoal() {
-        print("📊 Setting weekly goal for \(category.label)")
+        print("投 Setting weekly goal for \(category.label)")
         // This would open a goal-setting interface
     }
     
     private func setMonthlyGoal() {
-        print("📈 Setting monthly goal for \(category.label)")
+        print("嶋 Setting monthly goal for \(category.label)")
         // This would open a goal-setting interface
     }
     
     private func shareProgress() {
-        print("📤 Sharing progress for \(category.label)")
+        print("豆 Sharing progress for \(category.label)")
         // This would create a shareable progress report
         
-        let progressText = "I'm at \(Int(category.value * 100))% completion in \(category.label) this week! 💪 #PersonalGrowth #GrowthDash"
+        let progressText = "I'm at \(Int(category.value * 100))% completion in \(category.label) this week! 潮 #PersonalGrowth #GrowthDash"
         
         // In a real implementation, this would use UIActivityViewController
         // to share via Messages, Mail, Social Media, etc.
@@ -131,8 +131,4 @@ struct CategoryContextMenu: View {
             }
     }
     .padding()
-}
-
-#Preview {
-    CategoryContextMenu()
 }

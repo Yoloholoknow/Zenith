@@ -177,31 +177,14 @@ struct CategoryDetailPopup: View {
     }
     
     private func getProgressData() -> [WeeklyProgress] {
-       // In a real implementation, this would fetch actual historical data
-       // For now, we'll generate sample data based on current performance
-       let calendar = Calendar.current
-       let now = Date()
-       var progressData: [WeeklyProgress] = []
-       
-       let baseRate = categoryStats.percentage
-       
-       for week in (0..<6).reversed() {
-           let weekStart = calendar.date(byAdding: .weekOfYear, value: -week, to: now) ?? now
-           
-           // Generate realistic variation around the current rate
-           let variation = Double.random(in: -0.2...0.2)
-           let weekRate = min(max(baseRate + variation, 0.0), 1.0)
-           
-           let weekTasks = Int.random(in: 5...15)
-           let completedTasks = Int(Double(weekTasks) * weekRate)
-           
-           progressData.append(WeeklyProgress(
-               weekStart: weekStart,
-               totalTasks: weekTasks,
-               completedTasks: completedTasks,
-               completionRate: weekRate
-           ))
-       }
+        let allTasks = DataManager.shared.loadTasks()
+        let calculator = StatsDataCalculator.shared
+        
+        guard let taskCategory = TaskCategory(rawValue: category.label) else {
+            return []
+        }
+        return calculator.getWeeklyProgressData(for: taskCategory, from: allTasks)
+    }
     
     private func getTrendDescription(_ trends: CategoryTrend) -> String {
         let changePercentage = Int(abs(trends.change * 100))
@@ -239,6 +222,3 @@ struct CategoryDetailPopup: View {
         return recommendations
     }
 }
-//#Preview {
-//    CategoryDetailPopup()
-//}

@@ -145,7 +145,3 @@ struct ProgressLineChart: View {
     )
     .padding()
 }
-
-#Preview {
-    ProgressLineChart()
-}

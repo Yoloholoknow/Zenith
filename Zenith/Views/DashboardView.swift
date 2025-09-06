@@ -29,38 +29,26 @@ struct DashboardView: View {
     private func runManualDataValidation() {
         print("🔍 Running manual data validation...")
         
-        do {
-            let currentTasks = dataManager.loadTasksWithValidation()
-            self.tasks = currentTasks
-            print("✅ All tasks passed validation")
-        } catch {
-            print("❌ Task validation error: \(error.localizedDescription)")
+        let currentTasks = dataManager.loadTasksWithValidation()
+        self.tasks = currentTasks
+        print("✅ All tasks passed validation")
+        
+        let validatedStreak = dataManager.loadStreakWithValidation()
+        if validatedStreak.currentStreak != streakManager.currentStreakCount ||
+           validatedStreak.bestStreak != streakManager.bestStreakCount {
+            print("⚠️ Manual validation corrected streak data")
+            streakManager.streak = validatedStreak
+        } else {
+            print("✅ Streak data passed validation")
         }
         
-        do {
-            let validatedStreak = dataManager.loadStreakWithValidation()
-            if validatedStreak.currentStreak != streakManager.currentStreakCount ||
-               validatedStreak.bestStreak != streakManager.bestStreakCount {
-                print("⚠️ Manual validation corrected streak data")
-                streakManager.streak = validatedStreak
-            } else {
-                print("✅ Streak data passed validation")
-            }
-        } catch {
-            print("❌ Streak validation error: \(error.localizedDescription)")
-        }
-        
-        do {
-            let validatedPoints = dataManager.loadPointsWithValidation()
-            if validatedPoints.totalPoints != pointsManager.totalPoints ||
-               validatedPoints.level != pointsManager.currentLevel {
-                print("⚠️ Manual validation corrected points data")
-                pointsManager.userPoints = validatedPoints
-            } else {
-                print("✅ Points data passed validation")
-            }
-        } catch {
-            print("❌ Points validation error: \(error.localizedDescription)")
+        let validatedPoints = dataManager.loadPointsWithValidation()
+        if validatedPoints.totalPoints != pointsManager.totalPoints ||
+           validatedPoints.level != pointsManager.currentLevel {
+            print("⚠️ Manual validation corrected points data")
+            pointsManager.userPoints = validatedPoints
+        } else {
+            print("✅ Points data passed validation")
         }
         
         let backupSuccess = dataManager.createBackup()
