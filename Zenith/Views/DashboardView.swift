@@ -12,6 +12,13 @@ struct DashboardView: View {
     @EnvironmentObject var pointsManager: PointsManager
     @StateObject private var dataManager = DataManager.shared
     @State private var tasks: [Task] = [] // Fix: Declare the tasks state variable
+    
+    @StateObject private var networkManager = NetworkManager.shared
+    @StateObject private var llmService = LLMService.shared
+    @State private var showingAPISettings = false
+    @State private var showingAIGeneration = false
+    @State private var showingPreferences = false
+    @StateObject private var taskGenerator = AITaskGenerator()
 
     private func formatLastSaveDate(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
@@ -103,6 +110,177 @@ struct DashboardView: View {
                         }
                         .padding(.top)
                     }
+                    
+                    // API Integration Status Card
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: networkManager.isConnected ? "cloud.fill" : "cloud.slash")
+                                .foregroundColor(networkManager.isConnected ? ThemeColors.successGreen : ThemeColors.warningOrange)
+                                .font(.title3)
+                            
+                            Text("AI Task Generation")
+                                .cardTitle()
+                            
+                            Spacer()
+                            
+                            Text(networkManager.isConnected ? "Connected" : "Setup Required")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(networkManager.isConnected ? ThemeColors.successGreen : ThemeColors.warningOrange)
+                                .cornerRadius(4)
+                        }
+                        
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                if networkManager.hasValidAPIKey() {
+                                    if networkManager.isConnected {
+                                        Text("✅ Ready to generate personalized tasks")
+                                            .font(.subheadline)
+                                            .foregroundColor(ThemeColors.successGreen)
+                                    } else {
+                                        Text("⚠️ API key configured but connection failed")
+                                            .font(.subheadline)
+                                            .foregroundColor(ThemeColors.warningOrange)
+                                    }
+                                } else {
+                                    Text("🔑 Configure your API key to unlock AI-powered task generation")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Text("Last generated: \(llmService.lastGeneratedTasks.isEmpty ? "Never" : "Recently")")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                        
+                        HStack {
+                            if networkManager.hasValidAPIKey() {
+                                Button("Test Connection") {
+                                    networkManager.checkConnection()
+                                }
+                                .font(.caption)
+                                .foregroundColor(ThemeColors.primaryBlue)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(ThemeColors.primaryBlue, lineWidth: 1)
+                                )
+                                .disabled(networkManager.isLoading)
+                                
+                                if networkManager.isLoading {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                }
+                            } else {
+                                Button("Setup AI Integration") {
+                                    showingAPISettings = true
+                                }
+                                .buttonStyle(PrimaryButtonStyle())
+                            }
+                            
+                            Spacer()
+                            
+                            Button("Settings") {
+                                showingAPISettings = true
+                            }
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        }
+                    }
+                    .dashboardCard()
+                    
+                    // AI Task Generation Card
+                    VStack(spacing: 12) {
+                        HStack {
+                            Text("🤖")
+                                .font(.title)
+                            
+                            Text("AI Task Generator")
+                                .cardTitle()
+                            
+                            Spacer()
+                            
+                            if taskGenerator.canGenerateToday() {
+                                Text("Ready")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(ThemeColors.successGreen)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(ThemeColors.successGreen.opacity(0.2))
+                                    .cornerRadius(4)
+                            } else {
+                                Text("Generated")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.orange)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(Color.orange.opacity(0.2))
+                                    .cornerRadius(4)
+                            }
+                        }
+                        
+                        if taskGenerator.isGenerating {
+                            VStack(spacing: 8) {
+                                ProgressView()
+                                    .scaleEffect(1.2)
+                                    .tint(ThemeColors.primaryBlue)
+                                
+                                Text("AI is creating your personalized tasks...")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.vertical, 8)
+                        } else if !taskGenerator.generatedTasks.isEmpty {
+                            VStack(spacing: 8) {
+                                Text("\(taskGenerator.generatedTasks.count) personalized tasks ready")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(ThemeColors.textPrimary)
+                                
+                                Text("Review and add tasks to your daily list")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            Text(taskGenerator.canGenerateToday() ? "Generate AI-powered tasks based on your preferences" : "Tasks already generated today")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        
+                        HStack(spacing: 12) {
+                            if taskGenerator.canGenerateToday() && taskGenerator.generatedTasks.isEmpty {
+                                Button("Generate Tasks") {
+                                    taskGenerator.generateDailyTasks()
+                                }
+                                .buttonStyle(PrimaryButtonStyle())
+                                .disabled(taskGenerator.isGenerating)
+                            }
+                            
+                            if !taskGenerator.generatedTasks.isEmpty {
+                                Button("Review Tasks") {
+                                    showingAIGeneration = true
+                                }
+                                .buttonStyle(SuccessButtonStyle())
+                            }
+                            
+                            Button("Preferences") {
+                                showingPreferences = true
+                            }
+                            .buttonStyle(SecondaryButtonStyle())
+                        }
+                    }
+                    .primaryCard()
                     
                     // Points & Level Card
                     VStack(spacing: 12) {
@@ -425,6 +603,26 @@ struct DashboardView: View {
                 .transition(.opacity)
                 .zIndex(1)
             }
+        }
+    }
+        }
+        .sheet(isPresented: $showingAIGeneration) {
+            AITaskGenerationView(tasks: $tasks, onTasksAdded: saveTasksData)
+        }
+        .sheet(isPresented: $showingPreferences) {
+            PreferencesView()
+        }
+        .onAppear {
+            loadTasksData()
+        }
+        }
+
+        private func loadTasksData() {
+        tasks = DataManager.shared.loadTasksWithValidation()
+        }
+
+        private func saveTasksData() {
+        DataManager.shared.saveTasks(tasks)
         }
     }
 }

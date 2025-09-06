@@ -18,7 +18,7 @@ struct ContentView: View {
                     Label("Dashboard", systemImage: "house")
                 }
             
-            TasksView()
+            TasksView( pointsManager: <#PointsManager#>)
                 .tabItem {
                     Label("Tasks", systemImage: "list.bullet")
                 }
