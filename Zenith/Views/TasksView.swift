@@ -255,13 +255,6 @@
 //    }
 //}
 
-//
-//  TasksView.swift
-//  Zenith
-//
-//  Created by Charles Huang on 9/2/25.
-//
-
 import SwiftUI
 
 struct TasksView: View {
@@ -289,7 +282,7 @@ struct TasksView: View {
                                 Text(task.title)
                                     .font(.headline)
                                     .strikethrough(task.isCompleted)
-                                    .foregroundColor(task.isCompleted ? .gray : ThemeColors.textPrimary)
+                                    .foregroundColor(task.isCompleted ? ThemeColors.textSecondary : ThemeColors.textPrimary)
                                 
                                 Spacer()
                                 
@@ -305,7 +298,7 @@ struct TasksView: View {
                             if !task.description.isEmpty {
                                 Text(task.description)
                                     .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(ThemeColors.textSecondary)
                                     .lineLimit(2)
                             }
                             
@@ -324,16 +317,19 @@ struct TasksView: View {
                                 } else {
                                     Text("\(task.potentialPoints) points")
                                         .font(.caption)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(ThemeColors.textSecondary)
                                 }
                             }
                         }
                     }
                     .padding(.vertical, 4)
                     .contentShape(Rectangle())
+                    .listRowBackground(ThemeColors.cardBackground)
                 }
                 .onDelete(perform: deleteTask)
             }
+            .background(ThemeColors.backgroundDark.ignoresSafeArea())
+            .scrollContentBackground(.hidden)
             .navigationTitle("Tasks")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -355,14 +351,17 @@ struct TasksView: View {
                         showingAddTask = true
                     }) {
                         Image(systemName: "plus")
+                            .foregroundColor(ThemeColors.primaryBlue)
                     }
                 }
             }
             .sheet(isPresented: $showingAddTask) {
                 AddTaskView(isPresented: $showingAddTask, tasks: $tasks, onTaskAdded: saveTasksData)
+                    .preferredColorScheme(.dark)
             }
             .sheet(isPresented: $showingAIGeneration) {
                 AITaskGenerationView(tasks: $tasks, onTasksAdded: saveTasksData)
+                    .preferredColorScheme(.dark)
             }
             .onAppear {
                 loadTasksData()
@@ -401,7 +400,7 @@ struct TasksView: View {
     private func priorityColor(for priority: TaskPriority) -> Color {
         switch priority {
         case .low:
-            return .gray
+            return ThemeColors.textSecondary
         case .medium:
             return ThemeColors.primaryBlue
         case .high:
@@ -426,24 +425,33 @@ struct AddTaskView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Task Details")) {
+                Section(header: Text("Task Details").foregroundColor(ThemeColors.textSecondary)) {
                     TextField("Task title", text: $taskTitle)
+                        .listRowBackground(ThemeColors.cardBackground)
                     TextField("Description (optional)", text: $taskDescription, axis: .vertical)
                         .lineLimit(3...6)
+                        .listRowBackground(ThemeColors.cardBackground)
                     
                     Picker("Priority", selection: $selectedPriority) {
                         ForEach(TaskPriority.allCases, id: \.self) { priority in
                             Text(priority.rawValue).tag(priority)
+                                .foregroundColor(ThemeColors.textPrimary)
                         }
                     }
+                    .listRowBackground(ThemeColors.cardBackground)
                     
                     Picker("Category", selection: $selectedCategory) {
                         ForEach(TaskCategory.allCases, id: \.self) { category in
                             Text(category.rawValue).tag(category)
+                                .foregroundColor(ThemeColors.textPrimary)
                         }
                     }
+                    .listRowBackground(ThemeColors.cardBackground)
                 }
             }
+            .preferredColorScheme(.dark)
+            .background(ThemeColors.backgroundDark)
+            .scrollContentBackground(.hidden)
             .navigationTitle("Add New Task")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

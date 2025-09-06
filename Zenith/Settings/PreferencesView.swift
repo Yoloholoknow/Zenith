@@ -25,36 +25,42 @@ struct PreferencesView: View {
                 Section("Daily Task Generation") {
                     HStack {
                         Text("Number of tasks")
+                            .foregroundColor(ThemeColors.textPrimary)
                         Spacer()
                         Stepper("\(preferences.dailyTaskCount)", value: $preferences.dailyTaskCount, in: 1...8)
                             .foregroundColor(ThemeColors.primaryBlue)
                     }
+                    .listRowBackground(ThemeColors.cardBackground)
                     
                     Picker("Difficulty Level", selection: $preferences.preferredDifficulty) {
                         ForEach(TaskDifficulty.allCases, id: \.self) { difficulty in
                             VStack(alignment: .leading) {
                                 Text(difficulty.rawValue)
+                                    .foregroundColor(ThemeColors.textPrimary)
                                 Text(difficulty.description)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(ThemeColors.textSecondary)
                             }
                             .tag(difficulty)
                         }
                     }
                     .pickerStyle(.navigationLink)
+                    .listRowBackground(ThemeColors.cardBackground)
                     
                     Picker("Time Availability", selection: $preferences.timeAvailability) {
                         ForEach(TimeAvailability.allCases, id: \.self) { time in
                             VStack(alignment: .leading) {
                                 Text(time.rawValue)
+                                    .foregroundColor(ThemeColors.textPrimary)
                                 Text(time.description)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(ThemeColors.textSecondary)
                             }
                             .tag(time)
                         }
                     }
                     .pickerStyle(.navigationLink)
+                    .listRowBackground(ThemeColors.cardBackground)
                 }
                 
                 // Category Preferences
@@ -62,6 +68,7 @@ struct PreferencesView: View {
                     ForEach(TaskCategory.allCases, id: \.self) { category in
                         HStack {
                             Text(category.rawValue)
+                                .foregroundColor(ThemeColors.textPrimary)
                             Spacer()
                             if preferences.preferredCategories.contains(category) {
                                 Button("Remove") {
@@ -87,6 +94,7 @@ struct PreferencesView: View {
                                     .cornerRadius(4)
                             }
                         }
+                        .listRowBackground(ThemeColors.cardBackground)
                     }
                 }
                 
@@ -95,6 +103,7 @@ struct PreferencesView: View {
                     ForEach(preferences.focusAreas.indices, id: \.self) { index in
                         HStack {
                             Text(preferences.focusAreas[index])
+                                .foregroundColor(ThemeColors.textPrimary)
                             Spacer()
                             Button("Remove") {
                                 preferences.focusAreas.remove(at: index)
@@ -102,10 +111,12 @@ struct PreferencesView: View {
                             .foregroundColor(.red)
                             .font(.caption)
                         }
+                        .listRowBackground(ThemeColors.cardBackground)
                     }
                     
                     HStack {
                         TextField("Add focus area", text: $newFocusArea)
+                            .foregroundColor(ThemeColors.textPrimary)
                         Button("Add") {
                             if !newFocusArea.isEmpty && !preferences.focusAreas.contains(newFocusArea) {
                                 preferences.focusAreas.append(newFocusArea)
@@ -115,27 +126,36 @@ struct PreferencesView: View {
                         .disabled(newFocusArea.isEmpty)
                         .foregroundColor(ThemeColors.primaryBlue)
                     }
+                    .listRowBackground(ThemeColors.cardBackground)
                 }
                 
                 // Advanced Settings
                 Section("Task Preferences") {
                     Toggle("Include routine tasks", isOn: $preferences.includeRoutineTasks)
                         .tint(ThemeColors.primaryBlue)
+                        .foregroundColor(ThemeColors.textPrimary)
+                        .listRowBackground(ThemeColors.cardBackground)
                     
                     Toggle("Include challenges", isOn: $preferences.includeChallenges)
                         .tint(ThemeColors.primaryBlue)
+                        .foregroundColor(ThemeColors.textPrimary)
+                        .listRowBackground(ThemeColors.cardBackground)
                     
                     Toggle("Prefer morning tasks", isOn: $preferences.preferMorningTasks)
                         .tint(ThemeColors.primaryBlue)
+                        .foregroundColor(ThemeColors.textPrimary)
+                        .listRowBackground(ThemeColors.cardBackground)
                     
                     HStack {
                         Text("Max task duration")
+                            .foregroundColor(ThemeColors.textPrimary)
                         Spacer()
                         Text("\(preferences.maxTaskDuration) min")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ThemeColors.textSecondary)
                         Stepper("", value: $preferences.maxTaskDuration, in: 15...180, step: 15)
                             .labelsHidden()
                     }
+                    .listRowBackground(ThemeColors.cardBackground)
                 }
                 
                 // Generation History
@@ -150,14 +170,17 @@ struct PreferencesView: View {
                                 
                                 Text(prompt.prefix(100) + (prompt.count > 100 ? "..." : ""))
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(ThemeColors.textSecondary)
                                     .lineLimit(3)
                             }
                             .padding(.vertical, 2)
+                            .listRowBackground(ThemeColors.cardBackground)
                         }
                     }
                 }
             }
+            .background(ThemeColors.backgroundDark.ignoresSafeArea())
+            .scrollContentBackground(.hidden)
             .navigationTitle("AI Preferences")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -165,6 +188,7 @@ struct PreferencesView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(ThemeColors.primaryBlue)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -176,6 +200,7 @@ struct PreferencesView: View {
                     .foregroundColor(ThemeColors.primaryBlue)
                 }
             }
+            .preferredColorScheme(.dark)
         }
     }
     

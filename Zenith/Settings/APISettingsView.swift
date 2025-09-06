@@ -28,14 +28,15 @@ struct APISettingsView: View {
                         Text("LLM API Configuration")
                             .font(.title2)
                             .fontWeight(.bold)
+                            .foregroundColor(ThemeColors.textPrimary)
                         
                         Text("Connect to an AI service to generate personalized daily tasks")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ThemeColors.textSecondary)
                             .multilineTextAlignment(.center)
                     }
                     .padding()
-                    .background(Color(.systemGroupedBackground))
+                    .background(ThemeColors.cardBackground)
                     .cornerRadius(12)
                     
                     // Connection Status
@@ -48,6 +49,7 @@ struct APISettingsView: View {
                             Text("Connection Status")
                                 .font(.headline)
                                 .fontWeight(.semibold)
+                                .foregroundColor(ThemeColors.textPrimary)
                             
                             Spacer()
                         }
@@ -55,7 +57,7 @@ struct APISettingsView: View {
                         HStack {
                             Text(connectionStatusText)
                                 .font(.subheadline)
-                                .foregroundColor(networkManager.isConnected ? ThemeColors.successGreen : .secondary)
+                                .foregroundColor(networkManager.isConnected ? ThemeColors.successGreen : ThemeColors.textSecondary)
                             
                             Spacer()
                             
@@ -89,6 +91,7 @@ struct APISettingsView: View {
                             Text("API Key Configuration")
                                 .font(.headline)
                                 .fontWeight(.semibold)
+                                .foregroundColor(ThemeColors.textPrimary)
                             
                             Spacer()
                         }
@@ -97,28 +100,33 @@ struct APISettingsView: View {
                             Text("OpenAI API Key")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
+                                .foregroundColor(ThemeColors.textPrimary)
                             
                             HStack {
                                 Group {
                                     if isSecureEntry {
                                         SecureField("Enter your API key", text: $apiKey)
+                                            .foregroundColor(ThemeColors.textPrimary)
                                     } else {
                                         TextField("Enter your API key", text: $apiKey)
+                                            .foregroundColor(ThemeColors.textPrimary)
                                     }
                                 }
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .background(ThemeColors.backgroundDark)
+                                .cornerRadius(8)
                                 
                                 Button(action: {
                                     isSecureEntry.toggle()
                                 }) {
                                     Image(systemName: isSecureEntry ? "eye" : "eye.slash")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(ThemeColors.textSecondary)
                                 }
                             }
                             
                             Text("Your API key is stored securely on your device and only used to communicate with the AI service.")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(ThemeColors.textSecondary)
                         }
                         
                         HStack {
@@ -151,6 +159,7 @@ struct APISettingsView: View {
                             Text("How to Get Your API Key")
                                 .font(.headline)
                                 .fontWeight(.semibold)
+                                .foregroundColor(ThemeColors.textPrimary)
                             
                             Spacer()
                         }
@@ -173,7 +182,7 @@ struct APISettingsView: View {
                 }
                 .padding()
             }
-            .background(ThemeColors.backgroundLight)
+            .background(ThemeColors.backgroundDark.ignoresSafeArea())
             .navigationTitle("API Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -192,6 +201,7 @@ struct APISettingsView: View {
             } message: {
                 Text(alertMessage)
             }
+            .preferredColorScheme(.dark)
         }
     }
     
@@ -219,7 +229,7 @@ struct APISettingsView: View {
             
             Text(text)
                 .font(.subheadline)
-                .foregroundColor(.primary)
+                .foregroundColor(ThemeColors.textPrimary)
             
             Spacer()
         }
@@ -249,8 +259,4 @@ struct APISettingsView: View {
             networkManager.checkConnection()
         }
     }
-}
-
-#Preview {
-    APISettingsView()
 }

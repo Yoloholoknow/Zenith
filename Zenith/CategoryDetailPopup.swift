@@ -26,7 +26,7 @@ struct CategoryDetailPopup: View {
                     
                     Text("\(timeframe.rawValue) Performance")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(ThemeColors.textSecondary)
                 }
                 
                 Spacer()
@@ -43,7 +43,7 @@ struct CategoryDetailPopup: View {
                 // Circular progress indicator
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 8)
+                        .stroke(ThemeColors.textSecondary.opacity(0.3), lineWidth: 8)
                         .frame(width: 120, height: 120)
                     
                     Circle()
@@ -61,7 +61,7 @@ struct CategoryDetailPopup: View {
                         
                         Text("Complete")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ThemeColors.textSecondary)
                     }
                 }
                 
@@ -74,7 +74,7 @@ struct CategoryDetailPopup: View {
                             .foregroundColor(ThemeColors.successGreen)
                         Text("Completed")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ThemeColors.textSecondary)
                     }
                     .frame(maxWidth: .infinity)
                     
@@ -85,7 +85,7 @@ struct CategoryDetailPopup: View {
                             .foregroundColor(ThemeColors.primaryBlue)
                         Text("Total")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ThemeColors.textSecondary)
                     }
                     .frame(maxWidth: .infinity)
                     
@@ -96,12 +96,12 @@ struct CategoryDetailPopup: View {
                             .foregroundColor(ThemeColors.warningOrange)
                         Text("Remaining")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ThemeColors.textSecondary)
                     }
                     .frame(maxWidth: .infinity)
                 }
                 .padding()
-                .background(Color(.systemGroupedBackground))
+                .background(ThemeColors.cardBackground)
                 .cornerRadius(12)
             }
             
@@ -112,34 +112,36 @@ struct CategoryDetailPopup: View {
                     color: category.color
                 )
             }
-
+            
             // Trend information
             if let trends = trends {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Trend Analysis")
                         .font(.headline)
                         .fontWeight(.semibold)
+                        .foregroundColor(ThemeColors.textPrimary)
                     
                     HStack {
                         Image(systemName: trends.isImproving ? "arrow.up.circle.fill" : trends.change < -0.1 ? "arrow.down.circle.fill" : "minus.circle.fill")
-                            .foregroundColor(trends.isImproving ? ThemeColors.successGreen : trends.change < -0.1 ? .red : .gray)
+                            .foregroundColor(trends.isImproving ? ThemeColors.successGreen : trends.change < -0.1 ? .red : ThemeColors.textSecondary)
                             .font(.title3)
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text(getTrendDescription(trends))
                                 .font(.subheadline)
                                 .fontWeight(.medium)
+                                .foregroundColor(ThemeColors.textPrimary)
                             
                             Text("Previous \(timeframe.rawValue.lowercased()): \(Int(trends.previousRate * 100))%")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(ThemeColors.textSecondary)
                         }
                         
                         Spacer()
                     }
                 }
                 .padding()
-                .background(Color(.systemGroupedBackground))
+                .background(ThemeColors.cardBackground)
                 .cornerRadius(12)
             }
             
@@ -148,6 +150,7 @@ struct CategoryDetailPopup: View {
                 Text("Recommendations")
                     .font(.headline)
                     .fontWeight(.semibold)
+                    .foregroundColor(ThemeColors.textPrimary)
                 
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(getRecommendations(), id: \.self) { recommendation in
@@ -158,7 +161,7 @@ struct CategoryDetailPopup: View {
                             
                             Text(recommendation)
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(ThemeColors.textSecondary)
                                 .multilineTextAlignment(.leading)
                             
                             Spacer()
@@ -167,13 +170,13 @@ struct CategoryDetailPopup: View {
                 }
             }
             .padding()
-            .background(Color(.systemGroupedBackground))
+            .background(ThemeColors.cardBackground)
             .cornerRadius(12)
             
             Spacer()
         }
         .padding()
-        .background(ThemeColors.backgroundLight)
+        .background(ThemeColors.backgroundDark)
     }
     
     private func getProgressData() -> [WeeklyProgress] {

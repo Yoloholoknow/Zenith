@@ -77,19 +77,19 @@ class StatsDataCalculator {
         let strugglingAreas = stats.filter { $0.percentage < 0.4 && $0.totalTasks >= 2 }
         if !strugglingAreas.isEmpty {
             let category = strugglingAreas.first!.category
-            insights.append("💪 Focus on \(category) - you have room to grow in this area")
+            insights.append("⚠️ Focus on \(category) - you have room to grow in this area")
         }
         
         // Balanced growth recognition
         let balancedAreas = stats.filter { $0.percentage >= 0.6 }.count
         if balancedAreas >= 3 {
-            insights.append("⭐ Great balance! You're performing well across multiple areas")
+            insights.append("✨ Great balance! You're performing well across multiple areas")
         }
         
         // Consistency check
         let overallScore = calculateOverallScore(from: tasks, timeframe: timeframe)
         if overallScore >= 0.8 {
-            insights.append("🔥 Excellent consistency! Keep up the amazing work")
+            insights.append("🚀 Excellent consistency! Keep up the amazing work")
         } else if overallScore >= 0.6 {
             insights.append("📈 Good progress! Small improvements will make a big difference")
         } else if overallScore > 0 {
@@ -322,58 +322,3 @@ class StatsDataCalculator {
         return dayPerformance.max(by: { $0.value < $1.value })?.key
     }
 }
-
-// MARK: - Supporting Data Models
-
-struct DetailedCategoryAnalysis {
-    let category: TaskCategory
-    let totalTasks: Int
-    let completedTasks: Int
-    let completionRate: Double
-    let averageCompletionTime: TimeInterval
-    let currentStreak: Int
-    let productivityTrend: ProductivityTrend
-    let lastActivity: Date
-    let bestDay: Date?
-}
-
-struct WeeklyProgress {
-    let weekStart: Date
-    let totalTasks: Int
-    let completedTasks: Int
-    let completionRate: Double
-}
-
-enum ProductivityTrend {
-    case improving
-    case stable
-    case declining
-    
-    var description: String {
-        switch self {
-        case .improving: return "Improving"
-        case .stable: return "Stable"
-        case .declining: return "Declining"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .improving: return ThemeColors.successGreen
-        case .stable: return ThemeColors.primaryBlue
-        case .declining: return ThemeColors.warningOrange
-        }
-    }
-}
-
-struct CategoryTrend {
-    let category: String
-    let currentRate: Double
-    let previousRate: Double
-    let change: Double
-    let isImproving: Bool
-}
-
-//#Preview {
-//    StatsDataCalculator()
-//}

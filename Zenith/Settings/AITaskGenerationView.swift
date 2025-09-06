@@ -31,7 +31,7 @@ struct AITaskGenerationView: View {
                         
                         Text("Generate personalized daily tasks based on your preferences and completion history")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ThemeColors.textSecondary)
                             .multilineTextAlignment(.center)
                         
                         Text(taskGenerator.getGenerationStatus())
@@ -79,7 +79,7 @@ struct AITaskGenerationView: View {
                                 
                                 Text("AI is generating your personalized tasks...")
                                     .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(ThemeColors.textSecondary)
                             }
                             .padding(.vertical, 20)
                         } else if !taskGenerator.generatedTasks.isEmpty {
@@ -87,21 +87,24 @@ struct AITaskGenerationView: View {
                                 Text("\(taskGenerator.generatedTasks.count) tasks generated")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
+                                    .foregroundColor(ThemeColors.textPrimary)
                                 
                                 Text("Review and select tasks to add to your daily list")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(ThemeColors.textSecondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
                         } else {
                             VStack(spacing: 8) {
                                 Text("No tasks generated yet")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
+                                    .foregroundColor(ThemeColors.textPrimary)
                                 
                                 Text("Tap 'Generate Tasks' to create your personalized daily tasks")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(ThemeColors.textSecondary)
                                     .multilineTextAlignment(.center)
                             }
                         }
@@ -129,67 +132,69 @@ struct AITaskGenerationView: View {
                             }
                             
                             ForEach(taskGenerator.generatedTasks) { task in
-                                HStack(spacing: 12) {
-                                    Button(action: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack(spacing: 12) {
+                                        Button(action: {
+                                            if selectedTasks.contains(task.id) {
+                                                selectedTasks.remove(task.id)
+                                            } else {
+                                                selectedTasks.insert(task.id)
+                                            }
+                                        }) {
+                                            Image(systemName: selectedTasks.contains(task.id) ? "checkmark.circle.fill" : "circle")
+                                                .foregroundColor(selectedTasks.contains(task.id) ? ThemeColors.successGreen : ThemeColors.textSecondary)
+                                                .font(.title2)
+                                        }
+                                        
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            HStack {
+                                                Text(task.title)
+                                                    .font(.headline)
+                                                    .foregroundColor(ThemeColors.textPrimary)
+                                                
+                                                Spacer()
+                                                
+                                                Text(task.priority.rawValue)
+                                                    .font(.caption)
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(priorityColor(for: task.priority))
+                                                    .cornerRadius(6)
+                                                    .foregroundColor(.white)
+                                            }
+                                            
+                                            Text(task.description)
+                                                .font(.subheadline)
+                                                .foregroundColor(ThemeColors.textSecondary)
+                                                .lineLimit(2)
+                                            
+                                            HStack {
+                                                Text(task.category.rawValue)
+                                                    .font(.caption)
+                                                    .foregroundColor(ThemeColors.secondaryPurple)
+                                                
+                                                Spacer()
+                                                
+                                                Text("\(task.potentialPoints) points")
+                                                    .font(.caption)
+                                                    .foregroundColor(ThemeColors.successGreen)
+                                                    .fontWeight(.medium)
+                                            }
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
                                         if selectedTasks.contains(task.id) {
                                             selectedTasks.remove(task.id)
                                         } else {
                                             selectedTasks.insert(task.id)
                                         }
-                                    }) {
-                                        Image(systemName: selectedTasks.contains(task.id) ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(selectedTasks.contains(task.id) ? ThemeColors.successGreen : .gray)
-                                            .font(.title2)
                                     }
                                     
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        HStack {
-                                            Text(task.title)
-                                                .font(.headline)
-                                                .foregroundColor(ThemeColors.textPrimary)
-                                            
-                                            Spacer()
-                                            
-                                            Text(task.priority.rawValue)
-                                                .font(.caption)
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 2)
-                                                .background(priorityColor(for: task.priority))
-                                                .cornerRadius(6)
-                                                .foregroundColor(.white)
-                                        }
-                                        
-                                        Text(task.description)
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                            .lineLimit(2)
-                                        
-                                        HStack {
-                                            Text(task.category.rawValue)
-                                                .font(.caption)
-                                                .foregroundColor(ThemeColors.secondaryPurple)
-                                            
-                                            Spacer()
-                                            
-                                            Text("\(task.potentialPoints) points")
-                                                .font(.caption)
-                                                .foregroundColor(ThemeColors.successGreen)
-                                                .fontWeight(.medium)
-                                        }
+                                    if task.id != taskGenerator.generatedTasks.last?.id {
+                                        Divider()
+                                            .background(ThemeColors.textSecondary)
                                     }
-                                }
-                                .padding(.vertical, 4)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    if selectedTasks.contains(task.id) {
-                                        selectedTasks.remove(task.id)
-                                    } else {
-                                        selectedTasks.insert(task.id)
-                                    }
-                                }
-                                
-                                if task.id != taskGenerator.generatedTasks.last?.id {
-                                    Divider()
                                 }
                             }
                         }
@@ -234,12 +239,14 @@ struct AITaskGenerationView: View {
                 }
                 .padding(.horizontal)
             }
-            .background(ThemeColors.backgroundLight)
+            .background(ThemeColors.backgroundDark.ignoresSafeArea())
             .navigationTitle("AI Tasks")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingPreferences) {
                 PreferencesView()
+                    .preferredColorScheme(.dark)
             }
+            .preferredColorScheme(.dark)
         }
     }
     
@@ -257,7 +264,7 @@ struct AITaskGenerationView: View {
     private func priorityColor(for priority: TaskPriority) -> Color {
         switch priority {
         case .low:
-            return .gray
+            return ThemeColors.textSecondary
         case .medium:
             return ThemeColors.primaryBlue
         case .high:

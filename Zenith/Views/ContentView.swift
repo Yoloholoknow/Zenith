@@ -27,6 +27,10 @@ struct ContentView: View {
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar")
                 }
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape")
+                }
         }
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarBackground(ThemeColors.cardBackground, for: .tabBar)
@@ -39,6 +43,6 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    ContentView()
-}
+//#Preview {
+//    ContentView()
+//}
