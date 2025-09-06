@@ -1,0 +1,407 @@
+//
+//  RadarChartView.swift
+//  Zenith
+//
+//  Created by Charles Huang on 9/6/25.
+//
+
+import SwiftUI
+
+struct RadarChartView: View {
+    let data: [RadarDataPoint]
+    let maxValue: Double
+    let onCategorySelected: ((RadarDataPoint) -> Void)?
+    let onQuickAction: ((RadarDataPoint, QuickAction) -> Void)?
+    
+    @State private var animationProgress: Double = 0
+    @State private var selectedIndex: Int? = nil
+    @State private var previousDataHash: Int = 0
+    
+    init(
+        data: [RadarDataPoint],
+        maxValue: Double,
+        onCategorySelected: ((RadarDataPoint) -> Void)? = nil,
+        onQuickAction: ((RadarDataPoint, QuickAction) -> Void)? = nil
+    ) {
+        self.data = data
+        self.maxValue = maxValue
+        self.onCategorySelected = onCategorySelected
+        self.onQuickAction = onQuickAction
+    }
+
+    private func showContextMenu(for category: RadarDataPoint, at index: Int) {
+        // Visual feedback for context menu activation
+        withAnimation(.easeInOut(duration: 0.2)) {
+            selectedIndex = index
+        }
+        
+        print("🔍 Showing context menu for \(category.label)")
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            let radius = min(geometry.size.width, geometry.size.height) / 2 - 40
+            
+            ZStack {
+                // Background grid
+                RadarGridView(center: center, radius: radius, sides: data.count, levels: 5)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                
+                // Radial lines
+                RadialLinesView(center: center, radius: radius, sides: data.count)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                
+                // Data visualization with animation
+                if !data.isEmpty {
+                    RadarDataShape(center: center, radius: radius, data: data, maxValue: maxValue, animationProgress: animationProgress)
+                        .fill(LinearGradient(
+                            colors: [ThemeColors.primaryBlue.opacity(0.3), ThemeColors.successGreen.opacity(0.3)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                    
+                    RadarDataShape(center: center, radius: radius, data: data, maxValue: maxValue, animationProgress: animationProgress)
+                        .stroke(ThemeColors.primaryBlue, lineWidth: 2)
+                    
+                    // Data points with interaction
+                    ForEach(data.indices, id: \.self) { index in
+                        let point = dataPoint(for: data[index], at: index, center: center, radius: radius, maxValue: maxValue, animationProgress: animationProgress, totalPoints: data.count)
+                        let isSelected = selectedIndex == index
+                        
+                        Circle()
+                            .fill(isSelected ? ThemeColors.streakGold : ThemeColors.primaryBlue)
+                            .frame(width: isSelected ? 14 : 10, height: isSelected ? 14 : 10)
+                            .position(point)
+                            .scaleEffect(isSelected ? 1.3 : 1.0)
+                            .shadow(color: isSelected ? ThemeColors.streakGold.opacity(0.5) : Color.clear, radius: isSelected ? 4 : 0)
+                            .opacity(animationProgress)
+                            .animation(.easeInOut(duration: 0.3), value: isSelected)
+                            .animation(.easeInOut(duration: 1.0), value: animationProgress)
+                            .onTapGesture {
+                                // Add haptic feedback
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    if selectedIndex == index {
+                                        selectedIndex = nil
+                                    } else {
+                                        selectedIndex = index
+                                        onCategorySelected?(data[index])
+                                    }
+                                }
+                            }
+                            .onLongPressGesture(minimumDuration: 0.5) {
+                                // Stronger haptic feedback for long press
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                                impactFeedback.impactOccurred()
+                                
+                                // Show context menu actions
+                                showContextMenu(for: data[index], at: index)
+                            }
+                            .contextMenu {
+                                CategoryContextMenu(category: data[index])
+                            }
+                        
+                        // Value label on selection
+                        if isSelected {
+                            VStack(spacing: 2) {
+                                Text(data[index].label)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                
+                                Text(String(format: "%.0f%%", data[index].value * 100))
+                                    .font(.caption2)
+                                    .foregroundColor(ThemeColors.successGreen)
+                            }
+                            .padding(6)
+                            .background(Color.white)
+                            .cornerRadius(6)
+                            .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
+                            .position(x: point.x, y: point.y - 35)
+                            .transition(.opacity.combined(with: .scale))
+                        }
+                    }
+                    
+                    // Labels
+                    ForEach(data.indices, id: \.self) { index in
+                        let labelPosition = labelPoint(for: index, center: center, radius: radius + 35, totalPoints: data.count)
+                        let isSelected = selectedIndex == index
+                        
+                        Text(data[index].label)
+                            .font(.caption)
+                            .fontWeight(isSelected ? .bold : .medium)
+                            .foregroundColor(isSelected ? ThemeColors.primaryBlue : ThemeColors.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .frame(width: 60)
+                            .position(labelPosition)
+                            .opacity(animationProgress)
+                            .animation(.easeInOut(duration: 0.2), value: isSelected)
+                            .animation(.easeInOut(duration: 1.2), value: animationProgress)
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    selectedIndex = selectedIndex == index ? nil : index
+                                }
+                            }
+                    }
+                } else {
+                    // Empty state
+                    VStack(spacing: 8) {
+                        Text("📊")
+                            .font(.system(size: 40))
+                            .opacity(0.5)
+                        
+                        Text("No data available")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Complete tasks to see your growth chart")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .position(center)
+                }
+                
+                // Center indicator
+                VStack(spacing: 2) {
+                    Text("Growth")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(ThemeColors.secondaryPurple)
+                    
+                    if let selectedIndex = selectedIndex, !data.isEmpty {
+                        Text(String(format: "%.0f%%", data[selectedIndex].value * 100))
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(ThemeColors.primaryBlue)
+                    } else {
+                        Text("Chart")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(ThemeColors.secondaryPurple)
+                    }
+                }
+                .position(center)
+                .animation(.easeInOut(duration: 0.3), value: selectedIndex)
+            }
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .onAppear {
+            startInitialAnimation()
+        }
+        .onChange(of: data) { newData in
+            handleDataChange(newData)
+        }
+    }
+    
+    private func startInitialAnimation() {
+        withAnimation(.easeInOut(duration: 1.5)) {
+            animationProgress = 1.0
+        }
+        previousDataHash = data.hashValue
+    }
+    
+    private func handleDataChange(_ newData: [RadarDataPoint]) {
+        let newHash = newData.hashValue
+        if newHash != previousDataHash {
+            // Reset and restart animation for data changes
+            animationProgress = 0.0
+            selectedIndex = nil // Clear selection on data change
+            
+            withAnimation(.easeInOut(duration: 1.0)) {
+                animationProgress = 1.0
+            }
+            
+            previousDataHash = newHash
+            print("📊 Radar chart animating with new data: \(newData.count) categories")
+        }
+    }
+}
+
+// Update helper function to include totalPoints parameter
+func dataPoint(for data: RadarDataPoint, at index: Int, center: CGPoint, radius: Double, maxValue: Double, animationProgress: Double, totalPoints: Int) -> CGPoint {
+    let angle = (Double(index) * 2 * .pi / Double(totalPoints)) - .pi / 2
+    let normalizedValue = min(data.value / maxValue, 1.0)
+    let animatedValue = normalizedValue * animationProgress
+    let pointRadius = radius * animatedValue
+    
+    return CGPoint(
+        x: center.x + cos(angle) * pointRadius,
+        y: center.y + sin(angle) * pointRadius
+    )
+}
+    
+struct RadarGridView: Shape {
+    let center: CGPoint
+    let radius: Double
+    let sides: Int
+    let levels: Int
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        
+        // Draw concentric polygons
+        for level in 1...levels {
+            let levelRadius = radius * Double(level) / Double(levels)
+            let points = polygonPoints(center: center, radius: levelRadius, sides: sides)
+            
+            path.move(to: points[0])
+            for point in points.dropFirst() {
+                path.addLine(to: point)
+            }
+            path.closeSubpath()
+        }
+        
+        return path
+    }
+}
+
+struct RadialLinesView: Shape {
+    let center: CGPoint
+    let radius: Double
+    let sides: Int
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        
+        for i in 0..<sides {
+            let angle = (Double(i) * 2 * .pi / Double(sides)) - .pi / 2
+            let endPoint = CGPoint(
+                x: center.x + cos(angle) * radius,
+                y: center.y + sin(angle) * radius
+            )
+            
+            path.move(to: center)
+            path.addLine(to: endPoint)
+        }
+        
+        return path
+    }
+}
+
+// Helper function to calculate polygon points
+func polygonPoints(center: CGPoint, radius: Double, sides: Int) -> [CGPoint] {
+    var points: [CGPoint] = []
+    
+    for i in 0..<sides {
+        let angle = (Double(i) * 2 * .pi / Double(sides)) - .pi / 2
+        let point = CGPoint(
+            x: center.x + cos(angle) * radius,
+            y: center.y + sin(angle) * radius
+        )
+        points.append(point)
+    }
+    
+    return points
+}
+
+struct RadarDataPoint {
+    let label: String
+    let value: Double
+    let color: Color
+    
+    init(label: String, value: Double, color: Color = .blue) {
+        self.label = label
+        self.value = value
+        self.color = color
+    }
+}
+    
+struct RadarDataShape: Shape {
+    let center: CGPoint
+    let radius: Double
+    let data: [RadarDataPoint]
+    let maxValue: Double
+    let animationProgress: Double
+    
+    var animatableData: Double {
+        get { animationProgress }
+        set { }
+    }
+    
+    func path(in rect: CGRect) -> Path {
+        guard !data.isEmpty else { return Path() }
+        
+        var path = Path()
+        let points = dataPoints()
+        
+        if points.isEmpty { return path }
+        
+        path.move(to: points[0])
+        for point in points.dropFirst() {
+            path.addLine(to: point)
+        }
+        path.closeSubpath()
+        
+        return path
+    }
+    
+    private func dataPoints() -> [CGPoint] {
+        return data.enumerated().map { index, dataPoint in
+            let angle = (Double(index) * 2 * .pi / Double(data.count)) - .pi / 2
+            let normalizedValue = min(dataPoint.value / maxValue, 1.0)
+            let animatedValue = normalizedValue * animationProgress
+            let pointRadius = radius * animatedValue
+            
+            return CGPoint(
+                x: center.x + cos(angle) * pointRadius,
+                y: center.y + sin(angle) * pointRadius
+            )
+        }
+    }
+}
+
+enum QuickAction {
+    case viewDetails
+    case viewTasks
+    case setFocusArea
+    case getSuggestions
+    case setDailyGoal
+    case setWeeklyGoal
+    case setMonthlyGoal
+    case shareProgress
+    
+    var title: String {
+        switch self {
+        case .viewDetails: return "View Details"
+        case .viewTasks: return "View Tasks"
+        case .setFocusArea: return "Set as Focus Area"
+        case .getSuggestions: return "Get Suggestions"
+        case .setDailyGoal: return "Set Daily Goal"
+        case .setWeeklyGoal: return "Set Weekly Goal"
+        case .setMonthlyGoal: return "Set Monthly Goal"
+        case .shareProgress: return "Share Progress"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .viewDetails: return "chart.bar.doc.horizontal"
+        case .viewTasks: return "list.bullet"
+        case .setFocusArea: return "target"
+        case .getSuggestions: return "lightbulb"
+        case .setDailyGoal: return "calendar"
+        case .setWeeklyGoal: return "calendar.week"
+        case .setMonthlyGoal: return "calendar.month"
+        case .shareProgress: return "square.and.arrow.up"
+        }
+    }
+}
+
+//#Preview {
+//    RadarChartView(
+//        data: [
+//            RadarDataPoint(label: "Productivity", value: 0.8),
+//            RadarDataPoint(label: "Health", value: 0.6),
+//            RadarDataPoint(label: "Learning", value: 0.9),
+//            RadarDataPoint(label: "Social", value: 0.4),
+//            RadarDataPoint(label: "Finance", value: 0.7)
+//        ],
+//        maxValue: 1.0
+//    )
+//    .frame(width: 300, height: 300)
+//    .padding()
+//}
