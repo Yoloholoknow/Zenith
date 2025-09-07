@@ -7,76 +7,54 @@
 
 import Foundation
 
-// MARK: - OpenAI Chat Completion Models
+// MARK: - Gemini Completion Models
 
-struct ChatCompletionRequest: Codable {
-    let model: String
-    let messages: [ChatMessage]
-    let maxTokens: Int?
+struct GeminiCompletionRequest: Codable {
+    let contents: [GeminiContent]
+    let generationConfig: GeminiGenerationConfig?
+    
+    init(contents: [GeminiContent], temperature: Double? = 0.7, maxOutputTokens: Int? = 1000) {
+        self.contents = contents
+        self.generationConfig = GeminiGenerationConfig(temperature: temperature, maxOutputTokens: maxOutputTokens)
+    }
+}
+
+struct GeminiGenerationConfig: Codable {
     let temperature: Double?
-    let topP: Double?
-    
-    enum CodingKeys: String, CodingKey {
-        case model, messages, temperature
-        case maxTokens = "max_tokens"
-        case topP = "top_p"
-    }
-    
-    init(model: String = "gpt-3.5-turbo", messages: [ChatMessage], maxTokens: Int? = 1000, temperature: Double? = 0.7, topP: Double? = 1.0) {
-        self.model = model
-        self.messages = messages
-        self.maxTokens = maxTokens
-        self.temperature = temperature
-        self.topP = topP
-    }
+    let maxOutputTokens: Int?
 }
 
-struct ChatMessage: Codable {
-    let role: String
-    let content: String
-    
-    init(role: MessageRole, content: String) {
-        self.role = role.rawValue
-        self.content = content
-    }
+struct GeminiContent: Codable {
+    let role: GeminiRole
+    let parts: [GeminiPart]
 }
 
-enum MessageRole: String, CaseIterable {
-    case system = "system"
+struct GeminiPart: Codable {
+    let text: String
+}
+
+enum GeminiRole: String, Codable {
     case user = "user"
-    case assistant = "assistant"
+    case model = "model"
 }
 
-struct ChatCompletionResponse: Codable {
-    let id: String
-    let object: String
-    let created: Int
-    let model: String
-    let choices: [ChatChoice]
-    let usage: Usage?
+struct GeminiCompletionResponse: Codable {
+    let candidates: [GeminiCandidate]
+    let promptFeedback: GeminiPromptFeedback?
 }
 
-struct ChatChoice: Codable {
-    let index: Int
-    let message: ChatMessage
+struct GeminiCandidate: Codable {
+    let content: GeminiContent
     let finishReason: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case index, message
-        case finishReason = "finish_reason"
-    }
 }
 
-struct Usage: Codable {
-    let promptTokens: Int
-    let completionTokens: Int
-    let totalTokens: Int
-    
-    enum CodingKeys: String, CodingKey {
-        case promptTokens = "prompt_tokens"
-        case completionTokens = "completion_tokens"
-        case totalTokens = "total_tokens"
-    }
+struct GeminiPromptFeedback: Codable {
+    let safetyRatings: [GeminiSafetyRating]
+}
+
+struct GeminiSafetyRating: Codable {
+    let category: String
+    let probability: String
 }
 
 // MARK: - Task Generation Models
@@ -154,17 +132,4 @@ struct GeneratedTaskResponse: Codable {
             category: category
         )
     }
-}
-
-// MARK: - Error Handling
-
-struct LLMErrorResponse: Codable {
-    let error: LLMError
-}
-
-struct LLMError: Codable {
-    let message: String
-    let type: String?
-    let param: String?
-    let code: String?
 }

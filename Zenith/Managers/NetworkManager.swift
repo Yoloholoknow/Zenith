@@ -15,7 +15,7 @@ class NetworkManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     // Configuration
-    private let baseURL = "https://api.openai.com/v1"
+    private let baseURL = "https://generativelanguage.googleapis.com/v1beta" // This is the correct base URL
     private var apiKey: String {
         return UserDefaults.standard.string(forKey: "llm_api_key") ?? ""
     }
@@ -49,10 +49,14 @@ class NetworkManager: ObservableObject {
         
         isLoading = true
         
-        let url = URL(string: "\(baseURL)/models")!
+        guard let url = URL(string: "\(baseURL)/models?key=\(apiKey)") else {
+            isConnected = false
+            isLoading = false
+            return
+        }
+        
         var request = URLRequest(url: url)
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "GET"
         
         session.dataTaskPublisher(for: request)
             .map(\.response)
@@ -93,14 +97,13 @@ class NetworkManager: ObservableObject {
                 .eraseToAnyPublisher()
         }
         
-        guard let url = URL(string: "\(baseURL)\(endpoint)") else {
+        guard let url = URL(string: "\(baseURL)\(endpoint)?key=\(apiKey)") else {
             return Fail(error: NetworkError.invalidURL)
                 .eraseToAnyPublisher()
         }
         
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if let body = body {

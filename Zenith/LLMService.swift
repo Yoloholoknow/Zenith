@@ -37,16 +37,16 @@ class LLMService: ObservableObject {
             completedTasks: completedTasks
         )
         
-        let chatRequest = createChatRequest(from: request)
+        let geminiRequest = createGeminiRequest(from: request)
         
         do {
-            let requestBody = try JSONEncoder().encode(chatRequest)
+            let requestBody = try JSONEncoder().encode(geminiRequest)
             
             return networkManager.makeRequest(
-                endpoint: "/chat/completions",
+                endpoint: "/models/gemini-2.0-flash:generateContent", // Updated model name
                 method: .POST,
                 body: requestBody,
-                responseType: ChatCompletionResponse.self
+                responseType: GeminiCompletionResponse.self
             )
             .tryMap { [weak self] response -> [Task] in
                 return try self?.parseTasksFromResponse(response) ?? []
@@ -96,7 +96,8 @@ class LLMService: ObservableObject {
     // MARK: - Motivational Message Generation
     
     func generateMotivationalMessage(streak: Int, level: Int) -> AnyPublisher<String, NetworkError> {
-        let prompt = """
+        let systemPrompt = "You are a supportive personal growth coach. Your name is Zenith."
+        let userPrompt = """
         Generate a short, encouraging message for a user who has:
         - Current streak: \(streak) days
         - Current level: \(level)
@@ -105,27 +106,28 @@ class LLMService: ObservableObject {
         Respond with just the message text, no quotes or extra formatting.
         """
         
-        let chatRequest = ChatCompletionRequest(
-            model: "gpt-3.5-turbo",
-            messages: [
-                ChatMessage(role: .system, content: "You are a supportive personal growth coach."),
-                ChatMessage(role: .user, content: prompt)
-            ],
-            maxTokens: 100,
-            temperature: 0.8
+        let geminiRequest = GeminiCompletionRequest(
+            contents: [
+                GeminiContent(
+                    role: .user,
+                    parts: [
+                        GeminiPart(text: "\(systemPrompt)\n\n\(userPrompt)")
+                    ]
+                )
+            ]
         )
         
         do {
-            let requestBody = try JSONEncoder().encode(chatRequest)
+            let requestBody = try JSONEncoder().encode(geminiRequest)
             
             return networkManager.makeRequest(
-                endpoint: "/chat/completions",
+                endpoint: "/models/gemini-2.0-flash:generateContent", // Updated model name
                 method: .POST,
                 body: requestBody,
-                responseType: ChatCompletionResponse.self
+                responseType: GeminiCompletionResponse.self
             )
             .tryMap { response -> String in
-                guard let message = response.choices.first?.message.content else {
+                guard let message = response.candidates.first?.content.parts.first?.text else {
                     throw NetworkError.decodingFailed
                 }
                 return message.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -147,30 +149,28 @@ class LLMService: ObservableObject {
     
     // MARK: - Private Helper Methods
     
-    private func createChatRequest(from taskRequest: TaskGenerationRequest) -> ChatCompletionRequest {
-        let systemMessage = ChatMessage(
-            role: .system,
-            content: "You are a helpful personal productivity assistant that generates daily tasks. Always respond with valid JSON matching the requested format."
-        )
+    private func createGeminiRequest(from taskRequest: TaskGenerationRequest) -> GeminiCompletionRequest {
+        let systemMessage = "You are a helpful personal productivity assistant that generates daily tasks. Always respond with valid JSON matching the requested format."
+        let userMessage = taskRequest.toPrompt()
         
-        let userMessage = ChatMessage(
-            role: .user,
-            content: taskRequest.toPrompt()
-        )
+        let contents = [
+            GeminiContent(
+                role: .user,
+                parts: [
+                    GeminiPart(text: "\(systemMessage)\n\n\(userMessage)")
+                ]
+            )
+        ]
         
-        return ChatCompletionRequest(
-            model: "gpt-3.5-turbo",
-            messages: [systemMessage, userMessage],
-            maxTokens: 1000,
-            temperature: 0.7
-        )
+        return GeminiCompletionRequest(contents: contents)
     }
     
-    private func parseTasksFromResponse(_ response: ChatCompletionResponse) throws -> [Task] {
-        guard let content = response.choices.first?.message.content else {
+    private func parseTasksFromResponse(_ response: GeminiCompletionResponse) throws -> [Task] {
+        guard let content = response.candidates.first?.content.parts.first?.text else {
             throw NetworkError.decodingFailed
         }
         
+        // Add this line to print the raw response content
         print("📝 Raw LLM Response: \(content)")
         
         // Try to extract JSON from the response

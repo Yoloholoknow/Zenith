@@ -66,7 +66,7 @@ struct SettingsView: View {
                     // API Integration Status Card
                     VStack(spacing: 12) {
                         HStack {
-                            Image(systemName: networkManager.isConnected ? "cloud.fill" : "cloud.slash")
+                            Image(systemName: networkManager.isConnected ? "cloud.fill" : "x.circle.fill")
                                 .foregroundColor(networkManager.isConnected ? ThemeColors.successGreen : ThemeColors.warningOrange)
                                 .font(.title3)
                             
@@ -232,7 +232,7 @@ struct SettingsView: View {
                             .buttonStyle(SecondaryButtonStyle())
                         }
                     }
-                    .primaryCard()
+                    .dashboardCard()
                     
                     // MARK: - Data Health Monitor Card
                     VStack(spacing: 12) {
@@ -366,20 +366,18 @@ struct SettingsView: View {
             .background(ThemeColors.backgroundDark.ignoresSafeArea())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-        }
-        .sheet(isPresented: $showingAIGeneration) {
-            AITaskGenerationView(tasks: $tasks) {
-                // Assuming saveTasksData is a method in SettingsView
+            .sheet(isPresented: $showingAIGeneration) {
+                AITaskGenerationView(tasks: $tasks)
             }
-        }
-        .sheet(isPresented: $showingPreferences) {
-            PreferencesView()
-        }
-        .sheet(isPresented: $showingAPISettings) {
-            APISettingsView()
-        }
-        .onAppear {
-            tasks = DataManager.shared.loadTasksWithValidation()
+            .sheet(isPresented: $showingPreferences) {
+                PreferencesView()
+            }
+            .sheet(isPresented: $showingAPISettings) {
+                APISettingsView()
+            }
+            .onAppear {
+                tasks = DataManager.shared.loadTasksWithValidation()
+            }
         }
     }
 }

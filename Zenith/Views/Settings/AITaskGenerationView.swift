@@ -13,7 +13,7 @@ struct AITaskGenerationView: View {
     @State private var showingTaskPreview = false
     @State private var selectedTasks: Set<UUID> = []
     @Binding var tasks: [Task]
-    let onTasksAdded: () -> Void
+    // The onTasksAdded closure is no longer needed for saving.
     
     var body: some View {
         NavigationView {
@@ -253,9 +253,9 @@ struct AITaskGenerationView: View {
     private func addSelectedTasks() {
         let tasksToAdd = taskGenerator.generatedTasks.filter { selectedTasks.contains($0.id) }
         tasks.append(contentsOf: tasksToAdd)
-        onTasksAdded()
+        DataManager.shared.saveTasks(tasks)
         
-        print("✅ Added \(tasksToAdd.count) AI-generated tasks to main list")
+        print("✅ Added \(tasksToAdd.count) AI-generated tasks to main list and saved data.")
         
         taskGenerator.generatedTasks.removeAll()
         selectedTasks.removeAll()

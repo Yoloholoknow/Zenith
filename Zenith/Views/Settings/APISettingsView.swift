@@ -97,7 +97,7 @@ struct APISettingsView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("OpenAI API Key")
+                            Text("Google Gemini API Key")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                                 .foregroundColor(ThemeColors.textPrimary)
@@ -165,13 +165,12 @@ struct APISettingsView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 12) {
-                            instructionStep(number: "1", text: "Visit platform.openai.com and create an account")
-                            instructionStep(number: "2", text: "Navigate to the API Keys section")
-                            instructionStep(number: "3", text: "Click 'Create new secret key'")
-                            instructionStep(number: "4", text: "Copy the key and paste it above")
+                            instructionStep(number: "1", text: "Visit ai.google.dev and create an account.")
+                            instructionStep(number: "2", text: "Navigate to 'Get API Key' and create a new key.")
+                            instructionStep(number: "3", text: "Copy the key and paste it above.")
                         }
                         
-                        Text("Note: You may need to add billing information to OpenAI to use their API.")
+                        Text("Note: The free tier of the Gemini API may have rate limits and data usage policies. See the Gemini API documentation for details.")
                             .font(.caption)
                             .foregroundColor(ThemeColors.warningOrange)
                             .padding(.top, 8)

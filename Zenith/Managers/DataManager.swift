@@ -11,13 +11,14 @@ import Combine
 class DataManager: ObservableObject {
     static let shared = DataManager()
     
-    private let userDefaults = UserDefaults.standard
+    private let userDefaults = UserDefaults.standard // Add this line
     
     // UserDefaults keys
     private let tasksKey = "saved_tasks"
     private let streakKey = "user_streak_data"
     private let pointsKey = "user_points_data"
     private let lastSaveKey = "last_save_date"
+    private let preferencesKey = "user_preferences"
     
     private init() {
         // Private initializer for singleton pattern
@@ -242,11 +243,19 @@ class DataManager: ObservableObject {
         return userDefaults.object(forKey: lastSaveKey) as? Date
     }
     
+    // Add the new clearPreferences function
+    func clearPreferences() {
+        userDefaults.removeObject(forKey: preferencesKey)
+        print("🗑️ User preferences cleared")
+    }
+    
     func clearAllData() {
         userDefaults.removeObject(forKey: tasksKey)
         userDefaults.removeObject(forKey: streakKey)
         userDefaults.removeObject(forKey: pointsKey)
         userDefaults.removeObject(forKey: lastSaveKey)
+        // Add the call to the new function here
+        clearPreferences()
         print("🗑️ All data cleared")
     }
     
