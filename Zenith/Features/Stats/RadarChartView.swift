@@ -10,29 +10,26 @@ import SwiftUI
 struct RadarChartView: View {
     let data: [RadarDataPoint]
     let maxValue: Double
-    let onCategorySelected: ((RadarDataPoint) -> Void)?
-    let onQuickAction: ((RadarDataPoint, QuickAction) -> Void)?
+    @Binding var selectedCategory: RadarDataPoint? // New: Use a binding for the selected category
     
     @State private var animationProgress: Double = 0
-    @State private var selectedIndex: Int? = nil
     @State private var previousDataHash: Int = 0
     
     init(
         data: [RadarDataPoint],
         maxValue: Double,
-        onCategorySelected: ((RadarDataPoint) -> Void)? = nil,
-        onQuickAction: ((RadarDataPoint, QuickAction) -> Void)? = nil
+        selectedCategory: Binding<RadarDataPoint?>
     ) {
         self.data = data
         self.maxValue = maxValue
-        self.onCategorySelected = onCategorySelected
-        self.onQuickAction = onQuickAction
+        self._selectedCategory = selectedCategory
     }
 
     private func showContextMenu(for category: RadarDataPoint, at index: Int) {
         // Visual feedback for context menu activation
         withAnimation(.easeInOut(duration: 0.2)) {
-            selectedIndex = index
+            // Update the selected category via the binding
+            selectedCategory = data[index]
         }
         
         print("🔍 Showing context menu for \(category.label)")
@@ -40,20 +37,21 @@ struct RadarChartView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let totalInset: CGFloat = 40 // Space for labels and padding
             let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
-            let radius = min(geometry.size.width, geometry.size.height) / 2 - 40
+            let radius = (min(geometry.size.width, geometry.size.height) / 2) - totalInset
             
             ZStack {
                 // Background grid
-                RadarGridView(center: center, radius: radius, sides: data.count, levels: 5)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                
-                // Radial lines
-                RadialLinesView(center: center, radius: radius, sides: data.count)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                
-                // Data visualization with animation
                 if !data.isEmpty {
+                    RadarGridView(center: center, radius: radius, sides: data.count, levels: 5)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    
+                    // Radial lines
+                    RadialLinesView(center: center, radius: radius, sides: data.count)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    
+                    // Data visualization with animation
                     RadarDataShape(center: center, radius: radius, data: data, maxValue: maxValue, animationProgress: animationProgress)
                         .fill(LinearGradient(
                             colors: [ThemeColors.primaryBlue.opacity(0.3), ThemeColors.successGreen.opacity(0.3)],
@@ -67,7 +65,7 @@ struct RadarChartView: View {
                     // Data points with interaction
                     ForEach(data.indices, id: \.self) { index in
                         let point = dataPoint(for: data[index], at: index, center: center, radius: radius, maxValue: maxValue, animationProgress: animationProgress, totalPoints: data.count)
-                        let isSelected = selectedIndex == index
+                        let isSelected = selectedCategory == data[index] // Use the binding for state
                         
                         Circle()
                             .fill(isSelected ? ThemeColors.streakGold : ThemeColors.primaryBlue)
@@ -84,12 +82,8 @@ struct RadarChartView: View {
                                 impactFeedback.impactOccurred()
                                 
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    if selectedIndex == index {
-                                        selectedIndex = nil
-                                    } else {
-                                        selectedIndex = index
-                                        onCategorySelected?(data[index])
-                                    }
+                                    // Update the binding directly
+                                    selectedCategory = selectedCategory == data[index] ? nil : data[index]
                                 }
                             }
                             .onLongPressGesture(minimumDuration: 0.5) {
@@ -126,8 +120,8 @@ struct RadarChartView: View {
                     
                     // Labels
                     ForEach(data.indices, id: \.self) { index in
-                        let labelPosition = labelPoint(for: index, center: center, radius: radius + 35, totalPoints: data.count)
-                        let isSelected = selectedIndex == index
+                        let labelPosition = labelPoint(for: index, center: center, radius: radius + (totalInset / 2), totalPoints: data.count)
+                        let isSelected = selectedCategory == data[index] // Use the binding for state
                         
                         Text(data[index].label)
                             .font(.caption)
@@ -141,7 +135,7 @@ struct RadarChartView: View {
                             .animation(.easeInOut(duration: 1.2), value: animationProgress)
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.3)) {
-                                    selectedIndex = selectedIndex == index ? nil : index
+                                    selectedCategory = selectedCategory == data[index] ? nil : data[index]
                                 }
                             }
                     }
@@ -172,8 +166,8 @@ struct RadarChartView: View {
                         .fontWeight(.bold)
                         .foregroundColor(ThemeColors.secondaryPurple)
                     
-                    if let selectedIndex = selectedIndex, !data.isEmpty {
-                        Text(String(format: "%.0f%%", data[selectedIndex].value * 100))
+                    if let selectedCategory = selectedCategory, !data.isEmpty {
+                        Text(String(format: "%.0f%%", selectedCategory.value * 100))
                             .font(.caption)
                             .fontWeight(.bold)
                             .foregroundColor(ThemeColors.primaryBlue)
@@ -185,7 +179,7 @@ struct RadarChartView: View {
                     }
                 }
                 .position(center)
-                .animation(.easeInOut(duration: 0.3), value: selectedIndex)
+                .animation(.easeInOut(duration: 0.3), value: selectedCategory)
             }
         }
         .aspectRatio(1, contentMode: .fit)
@@ -209,7 +203,7 @@ struct RadarChartView: View {
         if newHash != previousDataHash {
             // Reset and restart animation for data changes
             animationProgress = 0.0
-            selectedIndex = nil // Clear selection on data change
+            selectedCategory = nil // Clear selection on data change
             
             withAnimation(.easeInOut(duration: 1.0)) {
                 animationProgress = 1.0

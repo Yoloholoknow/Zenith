@@ -11,7 +11,7 @@ import Combine
 struct StatsView: View {
     @StateObject private var statsManager = StatsManager()
     @State private var selectedTimeframe: StatTimeframe = .week
-    @State private var selectedCategory: RadarDataPoint?
+    @State private var selectedCategory: RadarDataPoint? // This is the single source of truth
     @State private var showingCategoryDetail = false
     
     var body: some View {
@@ -107,10 +107,7 @@ struct StatsView: View {
                         RadarChartView(
                             data: statsManager.getRadarData(for: selectedTimeframe),
                             maxValue: 1.0,
-                            onCategorySelected: { category in
-                                selectedCategory = category
-                                showingCategoryDetail = true
-                            }
+                            selectedCategory: $selectedCategory // Pass the binding here
                         )
                         .frame(height: 300)
                         .padding()
@@ -119,6 +116,11 @@ struct StatsView: View {
                             .font(.caption)
                             .foregroundColor(selectedCategory != nil ? ThemeColors.primaryBlue : ThemeColors.textSecondary)
                             .animation(.easeInOut(duration: 0.3), value: selectedCategory)
+                            .onTapGesture {
+                                if selectedCategory != nil {
+                                    showingCategoryDetail = true
+                                }
+                            }
                     }
                     .statsCard()
                     
