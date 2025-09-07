@@ -143,12 +143,4 @@ struct DashboardView: View {
             }
         }
     }
-    
-    private func loadTasksData() {
-        tasks = DataManager.shared.loadTasksWithValidation()
-    }
-    
-    private func saveTasksData() {
-        DataManager.shared.saveTasks(tasks)
-    }
 }

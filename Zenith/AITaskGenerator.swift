@@ -110,9 +110,6 @@ class AITaskGenerator: ObservableObject {
     }
 }
 
-// NOTE: The previous version of this file contained a duplicate definition of AITaskGenerationView.
-// This has been removed to fix the "Invalid redeclaration" error.
-
 struct AITaskGenerator_Previews: PreviewProvider {
     static var previews: some View {
         Text("No preview available for this file. It contains a class, not a view.")
