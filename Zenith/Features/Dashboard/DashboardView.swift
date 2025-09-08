@@ -98,7 +98,7 @@ struct DashboardView: View {
                             .captionText()
                     }
                 }
-                .primaryCard()
+                .dashboardCard()
                 
                 // Streak Display
                 VStack(spacing: 24) {

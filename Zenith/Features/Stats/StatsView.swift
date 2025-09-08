@@ -70,7 +70,7 @@ struct StatsView: View {
                             }
                         }
                     }
-                    .primaryCard()
+                    .dashboardCard()
                     
                     // Timeframe Selector
                     Picker("Timeframe", selection: $selectedTimeframe) {
