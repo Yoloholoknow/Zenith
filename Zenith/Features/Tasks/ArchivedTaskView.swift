@@ -8,16 +8,17 @@
 import SwiftUI
 
 struct ArchivedTasksView: View {
-    @State private var archivedTasks: [Task] = []
     @State private var searchText: String = ""
     @State private var selectedCategory: TaskCategory? = nil
     @State private var selectedPriority: TaskPriority? = nil
     @State private var showingFilters: Bool = false
     
     @EnvironmentObject var dataManager: DataManager
+    @EnvironmentObject var pointsManager: PointsManager
+    @EnvironmentObject var streakManager: StreakManager
     
     var filteredTasks: [Task] {
-        var tasksToFilter = archivedTasks
+        var tasksToFilter = dataManager.archivedTasks
         
         // Filter by search text
         if !searchText.isEmpty {
@@ -76,7 +77,7 @@ struct ArchivedTasksView: View {
                             .foregroundColor(ThemeColors.textSecondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if archivedTasks.isEmpty {
+                } else if dataManager.archivedTasks.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "archivebox")
                             .font(.system(size: 50))
@@ -94,10 +95,16 @@ struct ArchivedTasksView: View {
                 List {
                     ForEach(filteredTasks) { task in
                         HStack(spacing: 12) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(ThemeColors.successGreen)
-                                .font(.title2)
-                            
+                            Button(action: {
+                                withAnimation {
+                                    unsubmitTask(task)
+                                }
+                            }) {
+                                Image(systemName: "arrow.uturn.left.circle")
+                                    .foregroundColor(ThemeColors.warningOrange)
+                                    .font(.title2)
+                            }
+
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
                                     Text(task.title)
@@ -113,19 +120,19 @@ struct ArchivedTasksView: View {
                                         .cornerRadius(8)
                                         .foregroundColor(.white)
                                 }
-                                
+
                                 Text(task.description)
                                     .font(.subheadline)
                                     .foregroundColor(ThemeColors.textSecondary)
                                     .lineLimit(2)
-                                
+
                                 HStack {
                                     Text(task.category.rawValue)
                                         .font(.caption)
                                         .foregroundColor(ThemeColors.secondaryPurple)
-                                    
+
                                     Spacer()
-                                    
+
                                     Text("Completed: \(task.completedDate?.formatted(date: .abbreviated, time: .shortened) ?? "N/A")")
                                         .font(.caption)
                                         .foregroundColor(ThemeColors.textSecondary)
@@ -142,9 +149,6 @@ struct ArchivedTasksView: View {
             .navigationTitle("Archive")
             .navigationBarTitleDisplayMode(.inline)
             .background(ThemeColors.backgroundDark.ignoresSafeArea())
-            .onAppear {
-                loadArchivedTasks()
-            }
         }
     }
     
@@ -154,7 +158,7 @@ struct ArchivedTasksView: View {
             Text("Filter by:")
                 .font(.headline)
                 .foregroundColor(ThemeColors.textPrimary)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     // Category Filters
@@ -169,7 +173,7 @@ struct ArchivedTasksView: View {
                     }
                 }
             }
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     // Priority Filters
@@ -188,9 +192,20 @@ struct ArchivedTasksView: View {
         .padding()
         .dashboardCard()
     }
-    
-    private func loadArchivedTasks() {
-        archivedTasks = dataManager.loadArchivedTasks()
+
+    private func unsubmitTask(_ task: Task) {
+        // Remove points and update streak first
+        pointsManager.removePointsForTask(task)
+        if let completedDate = task.completedDate {
+            streakManager.removeCompletion(on: completedDate)
+        }
+        
+        // Remove from archive and add back to main task list
+        dataManager.unarchiveTask(task)
+        
+        // Provide haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
     }
     
     private func priorityColor(for priority: TaskPriority) -> Color {

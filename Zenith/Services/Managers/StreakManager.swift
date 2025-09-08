@@ -49,6 +49,40 @@ class StreakManager: ObservableObject {
         saveStreak()
     }
     
+    // ADDED: New function to remove a completion and decrement streak if needed
+    func removeCompletion(on date: Date) {
+        let allTasks = DataManager.shared.loadTasks() + DataManager.shared.loadArchivedTasks()
+        let calendar = Calendar.current
+        
+        // Count how many tasks were completed on the specified date
+        let completedOnDateCount = allTasks.filter { task in
+            guard task.isCompleted, let completedDate = task.completedDate else { return false }
+            return calendar.isDate(completedDate, inSameDayAs: date)
+        }.count
+        
+        // Only decrement streak if this was the last task for that day
+        if completedOnDateCount <= 1 {
+            streak.currentStreak = max(0, streak.currentStreak - 1)
+            streak.totalDaysCompleted = max(0, streak.totalDaysCompleted - 1)
+            print("🔥 Streak decremented to \(streak.currentStreak) days.")
+            
+            if streak.currentStreak == 0 {
+                streak.lastCompletionDate = nil
+                streak.streakStartDate = nil
+            } else {
+                // Find the new last completion date
+                let tasksBeforeRemovedDay = allTasks.filter { task in
+                    guard let completedDate = task.completedDate else { return false }
+                    return completedDate < date
+                }.sorted { $0.completedDate! > $1.completedDate! }
+                
+                streak.lastCompletionDate = tasksBeforeRemovedDay.first?.completedDate
+            }
+        }
+        
+        saveStreak()
+    }
+    
     // Get current streak count
     var currentStreakCount: Int {
         return streak.currentStreak

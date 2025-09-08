@@ -65,6 +65,30 @@ class PointsManager: ObservableObject {
         savePoints()
     }
     
+    // ADDED: New function to remove points for a task
+    func removePointsForTask(_ task: Task) {
+        if let transaction = userPoints.pointHistory.first(where: { $0.taskId == task.id }) {
+            userPoints.totalPoints -= transaction.points
+            
+            // Check if the transaction was for today
+            let calendar = Calendar.current
+            if calendar.isDate(transaction.date, inSameDayAs: Date()) {
+                userPoints.dailyPoints -= transaction.points
+            }
+            
+            // Remove the transaction from history
+            userPoints.pointHistory.removeAll { $0.id == transaction.id }
+            
+            // Re-validate level based on new total points
+            userPoints.updateLevel()
+            
+            savePoints()
+            print("✅ Removed \(transaction.points) points for task: \(task.title)")
+        } else {
+            print("⚠️ Could not find point transaction for task: \(task.title)")
+        }
+    }
+    
     // Trigger celebration animation
     private func triggerCelebration() {
         showCelebration = true

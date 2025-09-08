@@ -36,9 +36,9 @@ struct UserPreferences: Codable {
     }
     
     // Check if new tasks should be generated today
+    // MODIFIED: This will now always return true to allow unlimited daily generation
     var shouldGenerateToday: Bool {
-        guard let lastDate = lastGenerationDate else { return true }
-        return !Calendar.current.isDate(lastDate, inSameDayAs: Date())
+        return true
     }
     
     // Get categories as readable string

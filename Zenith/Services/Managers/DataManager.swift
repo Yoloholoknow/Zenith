@@ -10,34 +10,47 @@ import Combine
 
 class DataManager: ObservableObject {
     static let shared = DataManager()
-    
+
+    // ADDED: Published properties to hold active and archived tasks
+    @Published var tasks: [Task] = []
+    @Published var archivedTasks: [Task] = []
+
     private let userDefaults = UserDefaults.standard
-    
+
     // UserDefaults keys
     private let tasksKey = "saved_tasks"
-    private let archivedTasksKey = "archived_tasks" // New key for archived tasks
+    private let archivedTasksKey = "archived_tasks"
     private let streakKey = "user_streak_data"
     private let pointsKey = "user_points_data"
     private let lastSaveKey = "last_save_date"
     private let preferencesKey = "user_preferences"
-    
+
     private init() {
         // Private initializer for singleton pattern
+        loadAllData()
     }
-    
+
+    // ADDED: A new function to load all data at once
+    private func loadAllData() {
+        tasks = loadTasksWithValidation()
+        archivedTasks = loadArchivedTasks()
+    }
+
     // MARK: - Task Management
-    
+
     func saveTasks(_ tasks: [Task]) {
         do {
             let data = try JSONEncoder().encode(tasks)
             userDefaults.set(data, forKey: tasksKey)
             updateLastSaveDate()
+            self.tasks = tasks
+            NotificationCenter.default.post(name: .tasksUpdated, object: nil)
             print("✅ Tasks saved: \(tasks.count) tasks")
         } catch {
             print("❌ Failed to save tasks: \(error.localizedDescription)")
         }
     }
-    
+
     func loadTasksWithValidation() -> [Task] {
         print("📝 Loading tasks with validation...")
         
@@ -47,12 +60,12 @@ class DataManager: ObservableObject {
         }
         
         do {
-            let tasks = try JSONDecoder().decode([Task].self, from: data)
-            print("📝 Loaded \(tasks.count) tasks from storage")
+            let loadedTasks = try JSONDecoder().decode([Task].self, from: data)
+            print("📝 Loaded \(loadedTasks.count) tasks from storage")
             
-            let validatedTasks = try DataValidator.shared.validateTasks(tasks)
+            let validatedTasks = try DataValidator.shared.validateTasks(loadedTasks)
             
-            if validatedTasks.count != tasks.count {
+            if validatedTasks.count != loadedTasks.count {
                 print("📝 Validation corrected tasks, saving updated data")
                 saveTasks(validatedTasks)
             }
@@ -72,7 +85,7 @@ class DataManager: ObservableObject {
             return []
         }
     }
-    
+
     // Changed from private to internal
     func loadTasks() -> [Task] {
         guard let data = userDefaults.data(forKey: tasksKey),
@@ -81,32 +94,60 @@ class DataManager: ObservableObject {
         }
         return tasks
     }
-    
+
     // MARK: - Archived Task Management
-    
+
     func archiveTask(_ task: Task) {
-        var archivedTasks = loadArchivedTasks()
-        var completedTask = task
-        completedTask.isCompleted = true
-        completedTask.completedDate = Date()
-        archivedTasks.append(completedTask)
-        
-        do {
-            let data = try JSONEncoder().encode(archivedTasks)
-            userDefaults.set(data, forKey: archivedTasksKey)
-            updateLastSaveDate()
-            print("✅ Task archived: \(task.title)")
-        } catch {
-            print("❌ Failed to archive task: \(error.localizedDescription)")
-        }
-    }
+       var completedTask = task
+       completedTask.isCompleted = true
+       completedTask.completedDate = Date()
+       archivedTasks.append(completedTask) // UPDATED: Directly append to published property
+       
+       do {
+           let data = try JSONEncoder().encode(archivedTasks)
+           userDefaults.set(data, forKey: archivedTasksKey)
+           updateLastSaveDate()
+           print("✅ Task archived: \(task.title)")
+       } catch {
+           print("❌ Failed to archive task: \(error.localizedDescription)")
+       }
+   }
+   
+   func loadArchivedTasks() -> [Task] {
+       guard let data = userDefaults.data(forKey: archivedTasksKey),
+             let archivedTasks = try? JSONDecoder().decode([Task].self, from: data) else {
+           return []
+       }
+       return archivedTasks
+   }
+   
+   func unarchiveTask(_ task: Task) {
+       if let index = archivedTasks.firstIndex(where: { $0.id == task.id }) {
+           let unarchivedTask = archivedTasks.remove(at: index) // UPDATED: Remove from published property
+           do {
+               let data = try JSONEncoder().encode(archivedTasks)
+               userDefaults.set(data, forKey: archivedTasksKey)
+               
+               // Add to active tasks and save
+               var tasksToSave = tasks // UPDATED: Use the published property
+               var newTask = unarchivedTask
+               newTask.isCompleted = false
+               newTask.completedDate = nil
+               tasksToSave.append(newTask)
+               saveTasks(tasksToSave) // UPDATED: saveTasks now handles the published property update
+               
+               print("✅ Task unarchived: \(task.title)")
+               
+           } catch {
+               print("❌ Failed to un-archive task: \(error.localizedDescription)")
+           }
+       }
+   }
     
-    func loadArchivedTasks() -> [Task] {
-        guard let data = userDefaults.data(forKey: archivedTasksKey),
-              let archivedTasks = try? JSONDecoder().decode([Task].self, from: data) else {
-            return []
-        }
-        return archivedTasks
+    func loadAllTasks() -> [Task] {
+        let activeTasks = loadTasks()
+        let archivedTasks = loadArchivedTasks()
+        return activeTasks + archivedTasks
     }
     
     // MARK: - Streak Management

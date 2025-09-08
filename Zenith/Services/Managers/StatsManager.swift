@@ -1,4 +1,3 @@
-//
 //  StatsManager.swift
 //  Zenith
 //
@@ -35,7 +34,7 @@ class StatsManager: ObservableObject {
     }
     
     func updateStats() {
-        let tasks = dataManager.loadTasksWithValidation()
+        let tasks = dataManager.loadAllTasks() // UPDATED: Load all tasks
         updateStatsForTasks(tasks)
     }
     
@@ -50,23 +49,23 @@ class StatsManager: ObservableObject {
     }
     
     func getRadarData(for timeframe: StatTimeframe) -> [RadarDataPoint] {
-        let tasks = dataManager.loadTasksWithValidation()
+        let tasks = dataManager.loadAllTasks() // UPDATED: Load all tasks
         return calculator.calculateRadarData(from: tasks, timeframe: timeframe)
     }
     
     func getDetailedStats(for timeframe: StatTimeframe) -> [CategoryStat] {
-        let tasks = dataManager.loadTasksWithValidation()
+        let tasks = dataManager.loadAllTasks() // UPDATED: Load all tasks
         return calculator.calculateCategoryStats(from: tasks, timeframe: timeframe)
     }
     
     func getInsights(for timeframe: StatTimeframe) -> [String]? {
-        let tasks = dataManager.loadTasksWithValidation()
+        let tasks = dataManager.loadAllTasks() // UPDATED: Load all tasks
         let insights = calculator.generateInsights(from: tasks, timeframe: timeframe)
         return insights.isEmpty ? nil : insights
     }
     
     func getOverallScore(for timeframe: StatTimeframe) -> Double {
-        let tasks = dataManager.loadTasksWithValidation()
+        let tasks = dataManager.loadAllTasks() // UPDATED: Load all tasks
         return calculator.calculateOverallScore(from: tasks, timeframe: timeframe)
     }
     

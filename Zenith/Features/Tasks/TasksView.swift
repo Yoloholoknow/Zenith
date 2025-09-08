@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct TasksView: View {
-    @State private var tasks: [Task] = []
     @State private var showingTaskDetail = false
     @State private var selectedTask: Task?
     @State private var showingAIGeneration = false
@@ -18,7 +17,7 @@ struct TasksView: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(tasks) { task in
+                ForEach(dataManager.tasks.filter { !$0.isCompleted }) { task in
                     HStack(spacing: 12) {
                         // Completion button
                         Button(action: {
@@ -123,31 +122,24 @@ struct TasksView: View {
                 }
             }
             .sheet(isPresented: $showingTaskDetail) {
-                TaskDetailView(isPresented: $showingTaskDetail, tasks: $tasks, task: selectedTask)
+                TaskDetailView(isPresented: $showingTaskDetail, tasks: $dataManager.tasks, task: selectedTask)
                     .preferredColorScheme(.dark)
             }
             .sheet(isPresented: $showingAIGeneration) {
-                AITaskGenerationView(tasks: $tasks)
+                AITaskGenerationView(tasks: $dataManager.tasks)
                     .preferredColorScheme(.dark)
-            }
-            .onAppear {
-                loadTasksData()
             }
         }
     }
     
-    private func loadTasksData() {
-        tasks = dataManager.loadTasksWithValidation().filter { !$0.isCompleted }
-    }
-    
     private func saveTasksData() {
-        dataManager.saveTasks(tasks)
+        dataManager.saveTasks(dataManager.tasks) // UPDATED: Save the published property
     }
     
     private func toggleTaskCompletion(_ task: Task) {
-        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+        if let index = dataManager.tasks.firstIndex(where: { $0.id == task.id }) {
             // First, update the local task to show it's completed for the animation
-            var completedTask = tasks.remove(at: index)
+            var completedTask = dataManager.tasks.remove(at: index)
             completedTask.isCompleted.toggle()
             
             // Perform haptic feedback
@@ -169,7 +161,7 @@ struct TasksView: View {
     }
     
     private func deleteTask(at offsets: IndexSet) {
-        tasks.remove(atOffsets: offsets)
+        dataManager.tasks.remove(atOffsets: offsets) // UPDATED: Modify the published property
         saveTasksData()
     }
     
