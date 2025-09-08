@@ -23,6 +23,11 @@ struct ContentView: View {
                     Label("Tasks", systemImage: "list.bullet")
                 }
             
+            ArchivedTasksView()
+                .tabItem {
+                    Label("Archive", systemImage: "archivebox")
+                }
+            
             StatsView()
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar")

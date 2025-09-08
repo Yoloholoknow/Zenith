@@ -9,7 +9,8 @@ import SwiftUI
 
 struct TasksView: View {
     @State private var tasks: [Task] = []
-    @State private var showingAddTask = false
+    @State private var showingTaskDetail = false
+    @State private var selectedTask: Task?
     @State private var showingAIGeneration = false
     @EnvironmentObject var pointsManager: PointsManager
     @EnvironmentObject var dataManager: DataManager
@@ -19,14 +20,26 @@ struct TasksView: View {
             List {
                 ForEach(tasks) { task in
                     HStack(spacing: 12) {
+                        // Completion button
                         Button(action: {
-                            toggleTaskCompletion(task)
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                toggleTaskCompletion(task)
+                            }
                         }) {
-                            Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(task.isCompleted ? ThemeColors.successGreen : .gray)
+                            Image(systemName: "circle")
+                                .foregroundColor(.gray)
                                 .font(.title2)
+                                .overlay(
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(ThemeColors.successGreen)
+                                        .font(.title2)
+                                        .scaleEffect(task.isCompleted ? 1.0 : 0.0)
+                                        .opacity(task.isCompleted ? 1.0 : 0.0)
+                                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: task.isCompleted)
+                                )
                         }
                         
+                        // Task details card
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
                                 Text(task.title)
@@ -71,9 +84,12 @@ struct TasksView: View {
                                 }
                             }
                         }
+                        .padding(.vertical, 4)
+                        .onTapGesture {
+                            selectedTask = task
+                            showingTaskDetail = true
+                        }
                     }
-                    .padding(.vertical, 4)
-                    .contentShape(Rectangle())
                     .listRowBackground(ThemeColors.cardBackground)
                 }
                 .onDelete(perform: deleteTask)
@@ -98,15 +114,16 @@ struct TasksView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        showingAddTask = true
+                        selectedTask = nil
+                        showingTaskDetail = true
                     }) {
                         Image(systemName: "plus")
                             .foregroundColor(ThemeColors.primaryBlue)
                     }
                 }
             }
-            .sheet(isPresented: $showingAddTask) {
-                AddTaskView(isPresented: $showingAddTask, tasks: $tasks, onTaskAdded: saveTasksData)
+            .sheet(isPresented: $showingTaskDetail) {
+                TaskDetailView(isPresented: $showingTaskDetail, tasks: $tasks, task: selectedTask)
                     .preferredColorScheme(.dark)
             }
             .sheet(isPresented: $showingAIGeneration) {
@@ -120,7 +137,7 @@ struct TasksView: View {
     }
     
     private func loadTasksData() {
-        tasks = dataManager.loadTasksWithValidation()
+        tasks = dataManager.loadTasksWithValidation().filter { !$0.isCompleted }
     }
     
     private func saveTasksData() {
@@ -129,16 +146,25 @@ struct TasksView: View {
     
     private func toggleTaskCompletion(_ task: Task) {
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[index].isCompleted.toggle()
+            // First, update the local task to show it's completed for the animation
+            var completedTask = tasks.remove(at: index)
+            completedTask.isCompleted.toggle()
             
-            if tasks[index].isCompleted {
-                tasks[index].markAsCompleted()
-                pointsManager.awardPointsForTask(tasks[index])
-            } else {
-                tasks[index].markAsIncomplete()
+            // Perform haptic feedback
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            
+            // Remove from the current view after a small delay to allow the animation to show
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Archive the task
+                dataManager.archiveTask(completedTask)
+                
+                // Award points
+                pointsManager.awardPointsForTask(completedTask)
+                
+                // Save the modified tasks list (without the completed task)
+                saveTasksData()
             }
-            
-            saveTasksData()
         }
     }
     

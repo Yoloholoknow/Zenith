@@ -11,10 +11,11 @@ import Combine
 class DataManager: ObservableObject {
     static let shared = DataManager()
     
-    private let userDefaults = UserDefaults.standard // Add this line
+    private let userDefaults = UserDefaults.standard
     
     // UserDefaults keys
     private let tasksKey = "saved_tasks"
+    private let archivedTasksKey = "archived_tasks" // New key for archived tasks
     private let streakKey = "user_streak_data"
     private let pointsKey = "user_points_data"
     private let lastSaveKey = "last_save_date"
@@ -41,10 +42,8 @@ class DataManager: ObservableObject {
         print("📝 Loading tasks with validation...")
         
         guard let data = userDefaults.data(forKey: tasksKey) else {
-            print("📝 No saved tasks found, returning sample tasks")
-            let sampleTasks = Task.sampleTasks()
-            saveTasks(sampleTasks)
-            return sampleTasks
+            print("📝 No saved tasks found, returning empty array")
+            return []
         }
         
         do {
@@ -69,10 +68,8 @@ class DataManager: ObservableObject {
                 return backupTasks
             }
             
-            print("🔄 Falling back to sample tasks")
-            let sampleTasks = Task.sampleTasks()
-            saveTasks(sampleTasks)
-            return sampleTasks
+            print("🔄 Falling back to empty tasks array")
+            return []
         }
     }
     
@@ -85,12 +82,31 @@ class DataManager: ObservableObject {
         return tasks
     }
     
-    private func attemptTaskBackupRestore() -> [Task]? {
-        guard let data = userDefaults.data(forKey: "app_data_backup"),
-              let backup = try? JSONDecoder().decode(AppDataBackup.self, from: data) else {
-            return nil
+    // MARK: - Archived Task Management
+    
+    func archiveTask(_ task: Task) {
+        var archivedTasks = loadArchivedTasks()
+        var completedTask = task
+        completedTask.isCompleted = true
+        completedTask.completedDate = Date()
+        archivedTasks.append(completedTask)
+        
+        do {
+            let data = try JSONEncoder().encode(archivedTasks)
+            userDefaults.set(data, forKey: archivedTasksKey)
+            updateLastSaveDate()
+            print("✅ Task archived: \(task.title)")
+        } catch {
+            print("❌ Failed to archive task: \(error.localizedDescription)")
         }
-        return backup.tasks
+    }
+    
+    func loadArchivedTasks() -> [Task] {
+        guard let data = userDefaults.data(forKey: archivedTasksKey),
+              let archivedTasks = try? JSONDecoder().decode([Task].self, from: data) else {
+            return []
+        }
+        return archivedTasks
     }
     
     // MARK: - Streak Management
@@ -153,6 +169,14 @@ class DataManager: ObservableObject {
             return Streak()
         }
         return streak
+    }
+    
+    private func attemptTaskBackupRestore() -> [Task]? {
+        guard let data = userDefaults.data(forKey: "app_data_backup"),
+              let backup = try? JSONDecoder().decode(AppDataBackup.self, from: data) else {
+            return nil
+        }
+        return backup.tasks
     }
     
     private func attemptStreakBackupRestore() -> Streak? {
@@ -251,18 +275,19 @@ class DataManager: ObservableObject {
     
     func clearAllData() {
         userDefaults.removeObject(forKey: tasksKey)
+        userDefaults.removeObject(forKey: archivedTasksKey)
         userDefaults.removeObject(forKey: streakKey)
         userDefaults.removeObject(forKey: pointsKey)
         userDefaults.removeObject(forKey: lastSaveKey)
-        // Add the call to the new function here
         clearPreferences()
         print("🗑️ All data cleared")
     }
     
     func hasExistingData() -> Bool {
         return userDefaults.data(forKey: tasksKey) != nil ||
-               userDefaults.data(forKey: streakKey) != nil ||
-               userDefaults.data(forKey: pointsKey) != nil
+        userDefaults.data(forKey: archivedTasksKey) != nil ||
+        userDefaults.data(forKey: streakKey) != nil ||
+        userDefaults.data(forKey: pointsKey) != nil
     }
     
     // MARK: - Data Validation and Backup

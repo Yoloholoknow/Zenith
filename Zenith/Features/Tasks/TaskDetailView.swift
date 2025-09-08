@@ -1,5 +1,5 @@
 //
-//  AddTaskView.swift
+//  TaskDetailView.swift
 //  Zenith
 //
 //  Created by Charles Huang on 9/7/25.
@@ -7,15 +7,26 @@
 
 import SwiftUI
 
-struct AddTaskView: View {
+struct TaskDetailView: View {
     @Binding var isPresented: Bool
     @Binding var tasks: [Task]
-    @State private var taskTitle: String = ""
-    @State private var taskDescription: String = ""
-    @State private var selectedPriority: TaskPriority = .medium
-    @State private var selectedCategory: TaskCategory = .other
+    @State private var taskTitle: String
+    @State private var taskDescription: String
+    @State private var selectedPriority: TaskPriority
+    @State private var selectedCategory: TaskCategory
     
-    let onTaskAdded: () -> Void
+    var existingTask: Task?
+    
+    init(isPresented: Binding<Bool>, tasks: Binding<[Task]>, task: Task? = nil) {
+        self._isPresented = isPresented
+        self._tasks = tasks
+        self.existingTask = task
+        
+        _taskTitle = State(initialValue: task?.title ?? "")
+        _taskDescription = State(initialValue: task?.description ?? "")
+        _selectedPriority = State(initialValue: task?.priority ?? .medium)
+        _selectedCategory = State(initialValue: task?.category ?? .other)
+    }
     
     var body: some View {
         NavigationView {
@@ -47,7 +58,7 @@ struct AddTaskView: View {
             .preferredColorScheme(.dark)
             .background(ThemeColors.backgroundDark)
             .scrollContentBackground(.hidden)
-            .navigationTitle("Add New Task")
+            .navigationTitle(existingTask == nil ? "Add New Task" : "Edit Task")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -58,14 +69,24 @@ struct AddTaskView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        let newTask = Task(
-                            title: taskTitle,
-                            description: taskDescription,
-                            priority: selectedPriority,
-                            category: selectedCategory
-                        )
-                        tasks.append(newTask)
-                        onTaskAdded()
+                        if let existingIndex = tasks.firstIndex(where: { $0.id == existingTask?.id }) {
+                            // Edit existing task
+                            tasks[existingIndex].title = taskTitle
+                            tasks[existingIndex].description = taskDescription
+                            tasks[existingIndex].priority = selectedPriority
+                            tasks[existingIndex].category = selectedCategory
+                        } else {
+                            // Add new task
+                            let newTask = Task(
+                                title: taskTitle,
+                                description: taskDescription,
+                                priority: selectedPriority,
+                                category: selectedCategory
+                            )
+                            tasks.append(newTask)
+                        }
+                        
+                        DataManager.shared.saveTasks(tasks)
                         isPresented = false
                     }
                     .disabled(taskTitle.isEmpty)
@@ -74,4 +95,3 @@ struct AddTaskView: View {
         }
     }
 }
-
