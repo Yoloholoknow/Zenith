@@ -100,7 +100,7 @@ struct DashboardView: View {
                 }
                 .dashboardCard()
                 
-                // Streak Display
+                // MARK: - Streak Display
                 VStack(spacing: 24) {
                     Button(action: {
                         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
@@ -132,7 +132,7 @@ struct DashboardView: View {
             }
             .padding()
             
-            // Celebration overlay
+            // MARK: - Celebration overlay
             if pointsManager.showCelebration {
                 CelebrationOverlay(
                     pointsAwarded: pointsManager.lastAwardedPoints,

@@ -236,7 +236,7 @@ struct APISettingsView: View {
     
     private func loadCurrentAPIKey() {
         if networkManager.hasValidAPIKey() {
-            apiKey = String(repeating: "•", count: 20) // Show masked version
+            apiKey = String(repeating: "•", count: 20)
         }
     }
     

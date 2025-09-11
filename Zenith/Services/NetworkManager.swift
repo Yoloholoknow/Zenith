@@ -15,7 +15,7 @@ class NetworkManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     // Configuration
-    private let baseURL = "https://generativelanguage.googleapis.com/v1beta" // This is the correct base URL
+    private let baseURL = "https://generativelanguage.googleapis.com/v1beta"
     private var apiKey: String {
         return UserDefaults.standard.string(forKey: "llm_api_key") ?? ""
     }
