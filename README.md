@@ -51,7 +51,7 @@ Open → Generate or add tasks → Complete tasks to earn points → View progre
 ## ⚡ Setup (Run in 2 Minutes)
 1. Clone the repo:  
    ```bash
-   git clone https://github.com/yourusername/zenith.git
+   git clone https://github.com/yoloholoknow/zenith.git
    ```
 2. Open Zenith.xcodeproj in Xcode.
 3. Select a simulator or device.
@@ -77,6 +77,6 @@ Open → Generate or add tasks → Complete tasks to earn points → View progre
 **License:** MIT  
 
 **Author:** Your Name  
-- [LinkedIn](https://www.linkedin.com/in/yourprofile)  
-- your.email@example.com  
+- [LinkedIn](https://www.linkedin.com/in/charlesh1214/)  
+- charleshuang1214@gmail.com
 
