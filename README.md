@@ -76,7 +76,7 @@ Open → Generate or add tasks → Complete tasks to earn points → View progre
 ## 📄 License & Contact
 **License:** MIT  
 
-**Author:** Your Name  
+**Author:** Charles Huang
 - [LinkedIn](https://www.linkedin.com/in/charlesh1214/)  
 - charleshuang1214@gmail.com
 
